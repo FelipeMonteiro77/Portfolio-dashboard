@@ -1,0 +1,2116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capstone Portfolio Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128;
+  --border: #30363d; --border2: #21262d;
+  --text: #e6edf3; --text2: #8b949e; --text3: #6e7681;
+  --blue: #58a6ff; --green: #3fb950; --red: #f85149;
+  --orange: #e3b341; --purple: #bc8cff; --teal: #39d353;
+  --card-r: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg); color: var(--text); font-size: 13px; }
+
+/* ── HEADER ── */
+.header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 14px 28px; display: flex; align-items: center;
+  justify-content: space-between; gap: 16px;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.logo { font-size: 20px; }
+.header-title { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+.header-sub { font-size: 0.75rem; color: var(--text2); margin-top: 1px; }
+.header-badge {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 4px 12px; font-size: 0.75rem; color: var(--text2);
+}
+
+/* ── TABS ── */
+.tab-bar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 28px; display: flex; gap: 0;
+}
+.tab {
+  padding: 12px 18px; cursor: pointer; font-size: 0.82rem; font-weight: 500;
+  color: var(--text2); border-bottom: 2px solid transparent;
+  transition: all 0.15s; white-space: nowrap;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+/* ── LAYOUT ── */
+.panel { display: none; padding: 20px 28px; }
+.panel.active { display: block; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+@media(max-width:1100px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.grid-4{grid-template-columns:1fr 1fr}.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* ── STAT CARDS ── */
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--card-r); padding: 14px 18px;
+}
+.stat-label { font-size: 0.7rem; color: var(--text3); text-transform: uppercase;
+  letter-spacing: .05em; margin-bottom: 6px; }
+.stat-value { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+.stat-sub { font-size: 0.72rem; color: var(--text2); margin-top: 4px; }
+.up { color: var(--green); }
+.dn { color: var(--red); }
+.neu { color: var(--blue); }
+
+/* ── CHART CARD ── */
+.chart-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--card-r); padding: 16px 18px; margin-bottom: 16px;
+}
+.chart-card-header { margin-bottom: 12px; }
+.chart-card-title { font-size: 0.87rem; font-weight: 600; color: var(--text); }
+.chart-card-sub { font-size: 0.73rem; color: var(--text3); margin-top: 2px; }
+
+/* ── CONTROLS ── */
+.controls {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--card-r); padding: 14px 18px;
+  display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end;
+  margin-bottom: 16px;
+}
+.ctrl { display: flex; flex-direction: column; gap: 5px; }
+.ctrl label { font-size: 0.7rem; color: var(--text3); text-transform: uppercase; letter-spacing:.05em; }
+select, input[type=text] {
+  background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 6px; padding: 7px 10px; font-size: 0.82rem; cursor: pointer;
+  outline: none; min-width: 160px; font-family: inherit;
+}
+select:focus, input:focus { border-color: var(--blue); }
+
+/* ── SNAPSHOT TABLE ── */
+.snap-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.snap-table th {
+  text-align: left; padding: 8px 12px; color: var(--text3);
+  text-transform: uppercase; font-size: 0.67rem; letter-spacing: .05em;
+  border-bottom: 1px solid var(--border); font-weight: 600;
+}
+.snap-table td { padding: 7px 12px; border-bottom: 1px solid var(--border2); }
+.snap-table tr:hover td { background: var(--surface2); }
+.snap-table .ticker-cell { font-weight: 600; color: var(--text); font-size: 0.83rem; }
+.bar-cell { width: 120px; }
+.bar-wrap { background: var(--surface2); border-radius: 3px; height: 6px; overflow: hidden; }
+.bar-fill { height: 6px; border-radius: 3px; }
+.badge {
+  display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.68rem;
+  font-weight: 600; letter-spacing: .03em;
+}
+.badge-long { background: rgba(63,185,80,.15); color: var(--green); }
+.badge-short { background: rgba(248,81,73,.15); color: var(--red); }
+
+/* ── TICKER DETAIL MINI STATS ── */
+.mini-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.mini-stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 16px; flex: 1; min-width: 110px;
+}
+.mini-stat .label { font-size: 0.68rem; color: var(--text3); text-transform: uppercase; letter-spacing:.05em; }
+.mini-stat .val { font-size: 1.1rem; font-weight: 700; margin-top: 3px; }
+
+/* ── SEARCH ── */
+#ticker-search { width: 220px; }
+
+/* ── SCROLLABLE TABLE CONTAINER ── */
+.table-scroll { max-height: 420px; overflow-y: auto; border-radius: 8px; border: 1px solid var(--border); }
+.table-scroll::-webkit-scrollbar { width: 6px; }
+.table-scroll::-webkit-scrollbar-track { background: var(--surface2); }
+.table-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── PILL TOGGLE ── */
+.pill-group { display: flex; gap: 2px; background: var(--surface2); border-radius: 6px; padding: 2px; }
+.pill { padding: 5px 12px; border-radius: 5px; font-size: 0.78rem; cursor: pointer;
+  color: var(--text2); transition: all .15s; }
+.pill.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+
+/* ── SORTABLE TABLE ── */
+.snap-table th.sortable { cursor: pointer; user-select: none; transition: color .15s; }
+.snap-table th.sortable:hover { color: var(--blue); }
+.sort-arrow { font-size: .6rem; margin-left: 3px; opacity: .5; }
+.snap-table th.sort-active .sort-arrow { opacity: 1; color: var(--blue); }
+
+/* ── PRICE ANALYTICS GAUGE ── */
+.gauge-bar { height: 6px; background: var(--surface2); border-radius: 3px; position: relative; overflow: visible; margin-top: 6px; }
+.gauge-marker { position: absolute; top: -3px; width: 3px; height: 12px; border-radius: 2px; background: var(--blue); }
+.gauge-labels { display: flex; justify-content: space-between; font-size: .65rem; color: var(--text3); margin-top: 2px; }
+
+/* ── MULTI SELECT ── */
+select[multiple] {
+  background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px; font-size: .8rem; scrollbar-width: thin;
+}
+select[multiple] option { padding: 3px 8px; border-radius: 3px; }
+select[multiple] option:checked { background: rgba(88,166,255,.2); color: var(--blue); }
+
+/* ── TAB OVERFLOW ── */
+.tab-bar { overflow-x: auto; scrollbar-width: thin; }
+.tab-bar::-webkit-scrollbar { height: 3px; }
+.tab-bar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── SCREEN TAB ── */
+.screen-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; transition: border-color .2s, transform .15s;
+}
+.screen-card:hover { border-color: var(--blue); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+.sc-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.sc-ticker { font-weight: 700; font-size: .95rem; color: var(--blue); letter-spacing: .03em; }
+.sc-name { font-size: .7rem; color: var(--text3); margin-top: 1px; }
+.sc-sector { font-size: .62rem; color: var(--text3); background: var(--surface2); padding: 2px 6px; border-radius: 3px; white-space: nowrap; }
+.sc-price-row { display: flex; align-items: baseline; gap: 8px; margin: 6px 0 8px; }
+.sc-price { font-size: 1.3rem; font-weight: 700; }
+.sc-mktcap { font-size: .68rem; color: var(--text3); margin-top: 6px; }
+.sc-drawdown { font-size: .72rem; font-weight: 600; margin-top: 4px; }
+.news-item { padding: 12px 0; border-bottom: 1px solid var(--border2); display: flex; gap: 10px; }
+.news-item:last-child { border-bottom: none; }
+.news-item a { color: var(--text); text-decoration: none; font-weight: 500; font-size: .82rem; line-height: 1.4; }
+.news-item a:hover { color: var(--blue); }
+.news-meta { font-size: .68rem; color: var(--text3); margin-top: 4px; }
+.news-tag { display: inline-block; background: rgba(88,166,255,.12); color: var(--blue); font-size: .62rem; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-right: 4px; letter-spacing: .03em; }
+.screen-links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.screen-link {
+  display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+  text-decoration: none; color: var(--text2); font-size: .78rem; transition: all .15s;
+}
+.screen-link:hover { background: var(--surface); color: var(--blue); border-color: var(--blue); }
+.screen-link-icon { font-size: 1rem; }
+.news-loading { text-align: center; padding: 40px; color: var(--text3); font-size: .85rem; }
+.news-loading .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; margin-right: 8px; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.rsi-badge {
+  display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; border-radius: 4px;
+  font-size: .65rem; font-weight: 700; letter-spacing: .02em; white-space: nowrap;
+}
+.rsi-oversold { background: rgba(63,185,80,.15); color: var(--green); }
+.rsi-neutral { background: rgba(88,166,255,.12); color: var(--blue); }
+.rsi-warm { background: rgba(227,179,65,.15); color: var(--orange); }
+.rsi-overbought { background: rgba(248,81,73,.15); color: var(--red); }
+.rsi-loading { background: var(--surface2); color: var(--text3); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <span class="logo">📊</span>
+    <div>
+      <div class="header-title">Capstone Portfolio Dashboard</div>
+      <div class="header-sub" id="hdr-sub">Loading…</div>
+    </div>
+  </div>
+  <div id="hdr-badges" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="showTab('overview')">📈 Overview</div>
+  <div class="tab" onclick="showTab('snapshot')">📋 Latest Snapshot</div>
+  <div class="tab" onclick="showTab('ticker')">🔍 Ticker Detail</div>
+  <div class="tab" onclick="showTab('heatmap')">🗺️ Heatmap</div>
+  <div class="tab" onclick="showTab('priceanalytics')">💹 Price Analytics</div>
+  <div class="tab" onclick="showTab('risk')">⚡ Risk & Analytics</div>
+  <div class="tab" onclick="showTab('valuation')">🏷️ Valuation</div>
+  <div class="tab" onclick="showTab('screen')">📰 Screen</div>
+</div>
+
+<!-- ═══════════════════ OVERVIEW ═══════════════════ -->
+<div class="panel active" id="tab-overview">
+  <div class="grid-4" id="kpi-bar"></div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title">Gross Exposure by Ticker — Stacked</div>
+      <div class="chart-card-sub">|Weight %| per position. Days with zero weight excluded per ticker.</div>
+    </div>
+    <div id="ch-stacked" style="height:370px"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Net Exposure Over Time</div>
+        <div class="chart-card-sub">Signed weight — longs (+) and shorts (−)</div>
+      </div>
+      <div id="ch-net" style="height:280px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Active Positions Count</div>
+        <div class="chart-card-sub">Number of longs and shorts held per day</div>
+      </div>
+      <div id="ch-poscount" style="height:280px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SNAPSHOT ═══════════════════ -->
+<div class="panel" id="tab-snapshot">
+  <div class="grid-4" id="snap-kpis"></div>
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Current Portfolio — Bubble View</div>
+        <div class="chart-card-sub">Bubble size = |weight|, color = long/short, x = period price return</div>
+      </div>
+      <div id="ch-bubble" style="height:340px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Portfolio Weight Distribution</div>
+        <div class="chart-card-sub">All positions on latest date: <span id="snap-date-lbl"></span></div>
+      </div>
+      <div id="ch-snap-bar" style="height:340px"></div>
+    </div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title">Full Position Table</div>
+      <div class="chart-card-sub">All positions with weight and price data</div>
+    </div>
+    <div class="table-scroll">
+      <table class="snap-table">
+        <thead><tr>
+          <th>#</th><th>Ticker</th><th>Side</th>
+          <th>Weight %</th><th>Bar</th>
+          <th>Price</th><th>Chg (period)</th>
+        </tr></thead>
+        <tbody id="snap-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TICKER DETAIL ═══════════════════ -->
+<div class="panel" id="tab-ticker">
+  <div class="controls">
+    <div class="ctrl">
+      <label>Ticker</label>
+      <select id="ticker-sel" onchange="renderTicker()"></select>
+    </div>
+    <div class="ctrl">
+      <label>Chart type</label>
+      <div class="pill-group">
+        <div class="pill active" onclick="setChartMode('dual',this)">Weight + Price</div>
+        <div class="pill" onclick="setChartMode('weight',this)">Weight only</div>
+        <div class="pill" onclick="setChartMode('price',this)">Price only</div>
+      </div>
+    </div>
+  </div>
+  <div class="mini-stats" id="ticker-mini-stats"></div>
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title" id="ticker-chart-title">–</div>
+      <div class="chart-card-sub">Non-trading days excluded · Left: Weight % · Right: Price</div>
+    </div>
+    <div id="ch-detail" style="height:380px"></div>
+  </div>
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Weight Histogram</div>
+        <div class="chart-card-sub">Distribution of daily weights (active days only)</div>
+      </div>
+      <div id="ch-hist" style="height:240px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Weight vs. Price</div>
+        <div class="chart-card-sub">Scatter — colored by date (early→late)</div>
+      </div>
+      <div id="ch-scatter" style="height:240px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ HEATMAP ═══════════════════ -->
+<div class="panel" id="tab-heatmap">
+  <div class="controls">
+    <div class="ctrl">
+      <label>Sort by</label>
+      <select id="hm-sort" onchange="renderHeatmap()">
+        <option value="avg" selected>Avg |weight| desc</option>
+        <option value="max">Max |weight| desc</option>
+        <option value="name">Ticker A→Z</option>
+        <option value="days">Days active desc</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <label>Values</label>
+      <select id="hm-mode" onchange="renderHeatmap()">
+        <option value="abs">Gross (|weight|)</option>
+        <option value="signed">Net (signed)</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <label>Search ticker</label>
+      <input id="hm-search" type="text" placeholder="e.g. NVDA" oninput="renderHeatmap()">
+    </div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title">Weight Heatmap — Tickers × Dates</div>
+      <div class="chart-card-sub">Empty cells = ticker not held that day. Click a cell to jump to Ticker Detail.</div>
+    </div>
+    <div id="ch-heatmap" style="height:580px"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PRICE ANALYTICS ═══════════════════ -->
+<div class="panel" id="tab-priceanalytics">
+  <div class="grid-4" id="pa-kpis"></div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Price Return Ranking</div>
+        <div class="chart-card-sub">Total return over the observation period</div>
+      </div>
+      <div id="ch-return-rank" style="height:480px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Drawdown from Period High</div>
+        <div class="chart-card-sub">Current price vs. highest price in period — 0% = at the high</div>
+      </div>
+      <div id="ch-drawdown" style="height:480px"></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title">Normalized Price Comparison (Base = 100)</div>
+      <div class="chart-card-sub">Select tickers to compare performance · Hold Ctrl to select multiple</div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:12px">
+      <div class="ctrl">
+        <label>Tickers</label>
+        <select id="norm-ticker-sel" multiple style="min-height:100px;min-width:220px" onchange="renderNormalizedPrices()"></select>
+      </div>
+    </div>
+    <div id="ch-normalized" style="height:370px"></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title">Full Price Analytics Table</div>
+      <div class="chart-card-sub">Click column headers to sort · Click ticker name to go to Ticker Detail</div>
+    </div>
+    <div class="table-scroll" style="max-height:520px">
+      <table class="snap-table" id="pa-table">
+        <thead><tr>
+          <th class="sortable" onclick="sortPATable('ticker')">Ticker <span class="sort-arrow">↕</span></th>
+          <th class="sortable" onclick="sortPATable('price')">Price <span class="sort-arrow">↕</span></th>
+          <th class="sortable" onclick="sortPATable('high')">Period High <span class="sort-arrow">↕</span></th>
+          <th class="sortable" onclick="sortPATable('low')">Period Low <span class="sort-arrow">↕</span></th>
+          <th class="sortable" onclick="sortPATable('fromHigh')">From High <span class="sort-arrow">↕</span></th>
+          <th class="sortable" onclick="sortPATable('fromLow')">From Low <span class="sort-arrow">↕</span></th>
+          <th class="sortable" onclick="sortPATable('return')">Return <span class="sort-arrow">↕</span></th>
+          <th class="sortable" onclick="sortPATable('vol')">Vol (Ann.) <span class="sort-arrow">↕</span></th>
+          <th class="sortable" onclick="sortPATable('weight')">Weight <span class="sort-arrow">↕</span></th>
+        </tr></thead>
+        <tbody id="pa-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ RISK & ANALYTICS ═══════════════════ -->
+<div class="panel" id="tab-risk">
+  <div class="grid-4" id="risk-kpis"></div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Geographic / Market Breakdown</div>
+        <div class="chart-card-sub">Based on ticker suffix — latest snapshot weights</div>
+      </div>
+      <div id="ch-geo" style="height:340px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Position Size Distribution</div>
+        <div class="chart-card-sub">Histogram of |weight| on latest date</div>
+      </div>
+      <div id="ch-pos-dist" style="height:340px"></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Long vs Short Gross Exposure Over Time</div>
+        <div class="chart-card-sub">Total gross weight on each side per day</div>
+      </div>
+      <div id="ch-ls-exposure" style="height:300px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Daily Weight Turnover</div>
+        <div class="chart-card-sub">Sum of |weight changes| day-over-day</div>
+      </div>
+      <div id="ch-turnover" style="height:300px"></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title">Concentration Over Time — Top 5 Positions</div>
+      <div class="chart-card-sub">% of gross exposure from top 5 positions each day</div>
+    </div>
+    <div id="ch-concentration" style="height:300px"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ VALUATION ═══════════════════ -->
+<div class="panel" id="tab-valuation">
+  <div class="controls" style="align-items:center">
+    <div class="ctrl">
+      <label>EPS Source</label>
+      <div class="pill-group">
+        <div class="pill active" onclick="setValEps('capstone',this)">Capstone</div>
+        <div class="pill" onclick="setValEps('consensus',this)">Consensus</div>
+      </div>
+    </div>
+    <div class="ctrl">
+      <label>Year</label>
+      <div class="pill-group">
+        <div class="pill active" onclick="setValYear('26',this)">CY26E</div>
+        <div class="pill" onclick="setValYear('27',this)">CY27E</div>
+      </div>
+    </div>
+    <div class="ctrl" style="margin-left:auto">
+      <span id="val-status" style="font-size:.72rem;color:var(--text3)">Prices: fallback data</span>
+    </div>
+  </div>
+
+  <div class="grid-4" id="val-kpis"></div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title">Core Positions — Valuation & EPS Tracker</div>
+      <div class="chart-card-sub">Click column headers to sort · Capstone Research estimates vs. Street consensus</div>
+    </div>
+    <div class="table-scroll" style="max-height:520px">
+      <table class="snap-table" id="val-table">
+        <thead><tr>
+          <th class="sortable" onclick="sortValTable('ticker')">Ticker <span class="sort-arrow">↕</span></th>
+          <th style="text-align:left;padding:8px 12px;color:var(--text3);text-transform:uppercase;font-size:.67rem;letter-spacing:.05em;border-bottom:1px solid var(--border);font-weight:600">Sector</th>
+          <th class="sortable" onclick="sortValTable('price')">Price <span class="sort-arrow">↕</span></th>
+          <th class="sortable" onclick="sortValTable('mktCap')">Mkt Cap <span class="sort-arrow">↕</span></th>
+          <th style="text-align:center;padding:8px 12px;color:var(--text3);text-transform:uppercase;font-size:.67rem;letter-spacing:.05em;border-bottom:1px solid var(--border);font-weight:600;min-width:130px">52W Range</th>
+          <th class="sortable" onclick="sortValTable('eps')">EPS <span class="sort-arrow">↕</span></th>
+          <th class="sortable" onclick="sortValTable('pe')">P/E <span class="sort-arrow">↕</span></th>
+          <th class="sortable" onclick="sortValTable('growth')">EPS Grth <span class="sort-arrow">↕</span></th>
+          <th class="sortable" onclick="sortValTable('diff')">Cap vs Cons <span class="sort-arrow">↕</span></th>
+          <th class="sortable" onclick="sortValTable('peg')">PEG <span class="sort-arrow">↕</span></th>
+          <th style="text-align:center;padding:8px 12px;color:var(--text3);text-transform:uppercase;font-size:.67rem;letter-spacing:.05em;border-bottom:1px solid var(--border);font-weight:600">Signal</th>
+        </tr></thead>
+        <tbody id="val-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title">EPS Detail — Capstone vs Consensus</div>
+      <div class="chart-card-sub">CY26E and CY27E estimates side by side</div>
+    </div>
+    <div class="grid-3" id="val-eps-cards" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr))"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Forward P/E Comparison</div>
+        <div class="chart-card-sub">Based on selected EPS source and year</div>
+      </div>
+      <div id="ch-val-pe" style="height:480px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">EPS Growth: CY26 → CY27</div>
+        <div class="chart-card-sub">Year-over-year earnings growth by ticker</div>
+      </div>
+      <div id="ch-val-growth" style="height:480px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SCREEN ═══════════════════ -->
+<div class="panel" id="tab-screen">
+  <div class="grid-4" id="screen-kpis"></div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title">Core Positions Monitor</div>
+      <div class="chart-card-sub">60 watchlist names · Live pricing · 52-week ranges · Click card for Yahoo Finance</div>
+    </div>
+    <div id="screen-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:8px 0"></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title">Price Movement Snapshot</div>
+      <div class="chart-card-sub">Distance from 52-week high — how far each position has pulled back</div>
+    </div>
+    <div id="ch-screen-movement" style="height:360px"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">52-Week Position Map</div>
+        <div class="chart-card-sub">Where each stock sits within its 52-week range (0% = low, 100% = high)</div>
+      </div>
+      <div id="ch-screen-range" style="height:360px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Daily Change Ranking</div>
+        <div class="chart-card-sub">Intraday % change for all watchlist positions</div>
+      </div>
+      <div id="ch-screen-mktcap" style="height:360px"></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title">Latest News</div>
+      <div class="chart-card-sub">Headlines fetched from Google News RSS · Click to read full article</div>
+    </div>
+    <div id="screen-news" style="max-height:600px;overflow-y:auto;padding:0 4px">
+      <div class="news-loading"><span class="spinner"></span> Loading headlines...</div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title">Research Quick Links</div>
+      <div class="chart-card-sub">Direct links to financial analysis and news sources for all 60 watchlist names</div>
+    </div>
+    <div id="screen-links"></div>
+  </div>
+</div>
+
+<script>
+const D = {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "ticker_data": {"000660 KP": {"dates": ["2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06"], "weights": [0.0506, 0.0515, 0.0523, 0.0511, 0.0557, 0.0534, 0.0548, 0.0366, 0.0332, 0.0364, 0.0359, 0.0375, 0.0375], "prices": [741631.5, 753609.4375, 765587.3125, 734644.375, 798526.5, 839451.0, 859414.1875, 907325.75, 828471.25, 905329.4375, 898342.3125, 840449.1875, 837454.6875], "days_active": 13}, "000660 KS": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0301, 0.0312, 0.0322, 0.034, 0.0349, 0.034, 0.0338, 0.0333, 0.0334, 0.0342, 0.0342, 0.0342, 0.0385, 0.038, 0.038, 0.038, 0.038, 0.0404, 0.041, 0.041], "prices": [649800.9375, 675753.0625, 694718.0625, 724662.8125, 740633.375, 742629.6875, 747620.4375, 736640.75, 740633.375, 747620.4375, 754607.5625, 762592.8125, 878379.1875, 878379.1875, 878379.1875, 878379.1875, 892353.375, 947252.0625, 949248.4375, 1003148.9375], "days_active": 20}, "005930 KP": {"dates": ["2026-02-03"], "weights": [0.0298], "prices": [167500.0], "days_active": 1}, "005930 KS": {"dates": ["2026-01-30", "2026-02-02", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0143, 0.0269, 0.0298, 0.0325, 0.0325, 0.0351, 0.0354, 0.0354, 0.0354, 0.0365, 0.0369, 0.0377, 0.0484], "prices": [160500.0, 150400.0, 169100.0, 159300.0, 158600.0, 181200.0, 181200.0, 181200.0, 181200.0, 190000.0, 190100.0, 193000.0, 200000.0], "days_active": 13}, "005935 KS": {"dates": ["2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0148, 0.0154, 0.0154, 0.0154, 0.016, 0.0163, 0.0239, 0.0164], "prices": [127600.0, 127600.0, 127600.0, 127600.0, 133500.0, 135100.0, 136100.0, 140900.0], "days_active": 8}, "1OH6": {"dates": ["2026-01-20", "2026-02-02", "2026-02-04", "2026-02-05", "2026-02-06"], "weights": [-0.0714, -0.2149, 0.1044, 0.5372, -0.0024], "prices": [null, null, null, null, null], "days_active": 5}, "2330 TT": {"dates": ["2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0433, 0.0432, 0.0432, 0.0432, 0.0432, 0.0432, 0.043, 0.043], "prices": [1915.0, 1915.0, 1915.0, 1915.0, 1915.0, 1915.0, 1900.0, 1965.0], "days_active": 8}, "2OH6": {"dates": ["2026-02-03"], "weights": [-0.0356], "prices": [null], "days_active": 1}, "300502 CH": {"dates": ["2026-01-28", "2026-01-29", "2026-01-30"], "weights": [0.0061, 0.0061, 0.0065], "prices": [393.05, 393.0, 419.49], "days_active": 3}, "3110 JT": {"dates": ["2026-02-04", "2026-02-05", "2026-02-06"], "weights": [0.0044, 0.0064, 0.0064], "prices": [16390.0, 17180.0, 16900.0], "days_active": 3}, "402340 KP": {"dates": ["2026-02-03"], "weights": [0.0045], "prices": [546000.0], "days_active": 1}, "402340 KS": {"dates": ["2026-02-02", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0042, 0.0147, 0.0182, 0.0182, 0.023, 0.0226, 0.0226, 0.0226, 0.0227, 0.0231, 0.033, 0.033], "prices": [505000.0, 569000.0, 534000.0, 514000.0, 558000.0, 558000.0, 558000.0, 558000.0, 566000.0, 580000.0, 580000.0, 617000.0], "days_active": 12}, "AAPL": {"dates": ["2026-01-26", "2026-01-27", "2026-01-28", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06"], "weights": [0.1066, 0.1369, 0.1156, 0.1014, 0.1439, 0.2009, 0.1951, 0.0923, 0.0923], "prices": [255.1712, 258.0285, 256.2003, 259.2374, 269.7576, 269.2281, 276.2315, 275.6521, 277.86], "days_active": 9}, "AGX": {"dates": ["2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0442, 0.0536, 0.068, 0.0692, 0.0719, 0.1003, 0.1009, 0.1009], "prices": [409.95, 409.95, 406.88, 414.12, 432.18, 437.61, 441.71, 447.6], "days_active": 8}, "AKAM": {"dates": ["2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19"], "weights": [0.05, 0.0494, 0.0259, 0.0294, 0.0311, 0.0391, 0.0393, 0.0394, 0.0587, 0.0883, 0.0999, 0.0992], "prices": [103.26, 102.1, 99.35, 97.15, 96.63, 91.79, 91.92, 111.76, 111.76, 108.42, 109.31, 109.59], "days_active": 12}, "AMAT": {"dates": ["2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19"], "weights": [-0.0196, 0.0243, 0.0288, 0.0288], "prices": [301.514, 318.6825, 326.6027, 326.6027], "days_active": 4}, "AMD": {"dates": ["2026-01-26", "2026-02-04", "2026-02-05", "2026-02-06"], "weights": [0.0472, -0.0177, -0.0221, -0.0221], "prices": [251.31, 200.19, 192.5, 208.44], "days_active": 4}, "AMZN": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0769, 0.0753, 0.0775, 0.1281, 0.1303, 0.1803, 0.1797, 0.1765, 0.1725, 0.1736, 0.1743, 0.1743, 0.1104, 0.111, 0.1392, 0.2466, 0.2145, 0.1839, 0.1504, 0.1632, 0.149, 0.1464, 0.1459, 0.0489, 0.0489, 0.0022, 0.0052, -0.0026, -0.0136, -0.0152, 0.1033, 0.0606, 0.0606], "prices": [230.82, 226.5, 233.06, 240.93, 241.56, 247.38, 246.47, 242.6, 236.65, 238.18, 239.12, 239.12, 231.0, 234.34, 239.16, 238.42, 244.68, 243.01, 241.73, 239.3, 242.96, 238.62, 232.99, 222.69, 210.32, 198.79, 198.79, 201.15, 204.79, 204.86, 210.11, 205.27, 208.56], "days_active": 33}, "ASHR": {"dates": ["2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0477, 0.0769, 0.0658, 0.0764, 0.0556, 0.0556, 0.0768, 0.0753, 0.0623, 0.0689, 0.071, 0.0622, 0.068, 0.0539, 0.0478, 0.0528, 0.0555, 0.017, 0.017, 0.0581, 0.0494, 0.0366, 0.1435, 0.0143, 0.0144, 0.0731, 0.0731], "prices": [34.34, 33.86, 33.68, 33.96, 33.56, 33.56, 33.48, 33.69, 33.61, 33.7, 33.77, 33.66, 33.96, 33.44, 33.08, 33.24, 33.48, 33.2, 33.68, 33.68, 33.68, 33.86, 34.01, 33.88, 34.1, 34.01, 34.14], "days_active": 27}, "AVGO": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.1021, 0.113, 0.0871, 0.0895, 0.0864, 0.0901, 0.0922, 0.0927, 0.1203, 0.1445, 0.2028, 0.2028, 0.1196, 0.1203, 0.1175, 0.0877, 0.0858, 0.1214, 0.1021, 0.1026, 0.0837, 0.0748, 0.0725, 0.1409, 0.1409, 0.2952, 0.2389, 0.2484, 0.2042, 0.2018, 0.2092, 0.2514, 0.0707], "prices": [346.1, 347.62, 343.42, 343.77, 343.5, 344.97, 352.21, 354.61, 339.89, 343.02, 351.71, 351.71, 332.6, 325.49, 320.05, 324.85, 332.79, 333.24, 330.73, 331.3, 331.11, 320.33, 308.05, 310.51, 332.92, 325.17, 325.17, 332.54, 333.51, 333.99, 332.65, 330.34, 325.49], "days_active": 33}, "BABA": {"dates": ["2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0133, 0.0056, 0.022, 0.0231, 0.0226, 0.0249, 0.025, 0.0255, 0.0256, 0.0248, 0.0248, 0.0238, 0.0253, 0.0244, 0.0242, 0.0243, 0.0248, 0.0246, 0.0239, 0.0237, 0.0231, 0.0229, 0.0222, 0.0222, 0.0231, 0.0227, 0.0226, 0.0245, 0.0244, 0.0243, 0.0241, 0.0241], "prices": [155.74, 156.26, 150.9, 146.75, 150.96, 166.31, 167.01, 169.9, 170.93, 165.4, 165.4, 162.39, 177.18, 173.23, 171.37, 172.72, 175.66, 174.25, 169.56, 168.39, 163.65, 159.14, 157.76, 162.51, 155.73, 155.73, 155.43, 155.77, 154.27, 154.45, 152.78, 153.11], "days_active": 32}, "BIDU": {"dates": ["2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0133, 0.0188, 0.0229, 0.022, 0.0223, 0.0237, 0.0232, 0.0234, 0.0233, 0.0233, 0.0233, 0.0237, 0.0238, 0.0237, 0.0229, 0.0231, 0.0231, 0.023, 0.0224, 0.0218, 0.0212, 0.0204, 0.0227, 0.0227, 0.0247, 0.0244, 0.0245, 0.0262, 0.0261, 0.0257, 0.0255, 0.0255], "prices": [150.3, 149.68, 146.42, 146.81, 143.54, 152.26, 149.35, 150.5, 149.4, 149.53, 149.53, 150.02, 162.52, 161.44, 156.08, 157.64, 157.67, 157.51, 153.18, 148.57, 144.86, 137.95, 138.96, 145.93, 137.01, 137.01, 137.33, 137.87, 137.11, 135.86, 133.94, 133.63], "days_active": 32}, "COHR": {"dates": ["2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-02-14", "2026-02-23", "2026-02-24"], "weights": [0.0241, 0.0221, 0.0246, 0.0256, 0.026, 0.0255, 0.0175, 0.017, 0.017, 0.0248, 0.0582, 0.0582], "prices": [194.11, 191.62, 178.06, 185.18, 190.03, 184.11, 195.96, 191.04, 191.04, 217.23, 248.89, 254.86], "days_active": 12}, "COPX": {"dates": ["2026-01-20", "2026-01-22"], "weights": [0.021, 0.0205], "prices": [82.25, 82.23], "days_active": 2}, "CSCO": {"dates": ["2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0581, 0.0999, 0.1002, 0.0998, 0.0992, 0.1068, 0.1551, 0.1564, 0.1537, 0.1537, 0.0817, 0.0994, 0.1113, 0.1215, 0.1201, 0.1197, 0.019, 0.019], "prices": [77.01, 78.68, 78.96, 78.43, 78.32, 80.64, 83.11, 81.16, 82.36, 84.82, 76.85, 76.85, 76.85, 78.18, 78.56, 79.2, 77.74, 78.14], "days_active": 18}, "ENR GY": {"dates": ["2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0152, 0.0152, 0.0151, 0.0156, 0.0153, 0.0154, 0.031, 0.0309], "prices": [22.4729, 22.4729, 22.69, 22.83, 22.36, 22.43, 22.69, 22.67], "days_active": 8}, "EWY": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.1186, 0.1245, 0.1276, 0.2013, 0.1529, 0.13, 0.1542, 0.2123, 0.2164, 0.2192, 0.2622, 0.2622, 0.2026, 0.2023, 0.203, 0.2056, 0.2023, 0.2343, 0.2053, 0.2412, 0.3247, 0.1987, 0.1847, 0.1741, 0.1741, 0.1995, 0.2043, 0.2966, 0.307, 0.1628, 0.156, 0.221, 0.221], "prices": [97.22, 102.22, 104.83, 107.61, 107.03, 108.89, 108.93, 107.54, 109.64, 111.05, 112.22, 112.22, 110.97, 115.99, 117.97, 117.32, 122.7, 125.56, 124.5, 122.41, 120.93, 124.32, 120.26, 120.21, 124.71, 133.97, 133.97, 130.68, 132.93, 135.21, 141.88, 139.3, 144.55], "days_active": 33}, "GDX": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0222, 0.0481, 0.0497, 0.0759, 0.0992, 0.1031, 0.1066, 0.1075, 0.1199, 0.1202, 0.1204, 0.1204, 0.108, 0.1131, 0.1148, 0.0987, 0.1093, 0.1359, 0.1752, 0.1165, 0.1314, 0.0614, 0.0592, 0.0606, 0.0609, 0.0873, 0.0933, 0.0933], "prices": [85.77, 85.73, 88.45, 92.14, 91.06, 92.56, 95.72, 96.47, 96.86, 97.11, 97.24, 97.24, 102.78, 105.17, 107.02, 107.48, 109.29, 112.16, 107.98, 94.2, 103.94, 103.94, 100.25, 102.56, 104.24, 106.26, 110.29, 110.7], "days_active": 28}, "GEV": {"dates": ["2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0312, 0.0307, 0.0313, 0.0313, 0.0319, 0.0319, 0.0318, 0.0318], "prices": [802.13, 802.13, 819.15, 817.55, 834.61, 830.34, 831.7, 879.73], "days_active": 8}, "GOOG": {"dates": ["2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.026, 0.0263, 0.0265, 0.0265, 0.0263, 0.0261, 0.0261, 0.2027, 0.2042, 0.2043, 0.1427, 0.1223, 0.1228, 0.2028, 0.2048, 0.2087, 0.2062, 0.2071, 0.1992, 0.1992, 0.0245, 0.0242, 0.024, 0.1499, 0.1505, 0.2549, 0.3513, 0.3513], "prices": [328.9083, 332.4958, 336.1931, 336.0732, 332.9255, 330.1075, 330.1075, 321.9332, 330.6071, 328.1988, 333.3552, 334.7642, 336.0433, 338.4216, 338.2917, 344.6572, 340.4602, 333.1053, 331.0967, 322.8726, 305.8046, 305.8046, 302.6068, 303.726, 303.3463, 314.6783, 311.4706, 310.7011], "days_active": 28}, "IGV": {"dates": ["2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06"], "weights": [-0.0171, -0.0976, -0.028, -0.0713, -0.0691, -0.0382, -0.0382], "prices": [92.27, 90.31, 89.52, 85.39, 83.84, 79.67, 82.46], "days_active": 7}, "INTC": {"dates": ["2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0133, 0.0135, 0.0134, 0.031, 0.0236, 0.0226, 0.0269, 0.0224, 0.0222, 0.0247, 0.0247, 0.0269, 0.0275, 0.0281, 0.0265, 0.025, 0.0231, 0.0316, 0.0316], "prices": [45.07, 42.49, 43.93, 48.78, 48.66, 46.47, 48.81, 49.25, 48.6, 48.24, 50.59, 46.79, 46.79, 46.18, 45.46, 44.62, 44.11, 43.63, 46.12], "days_active": 19}, "KBWB": {"dates": ["2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14"], "weights": [0.0553, 0.056, 0.0552, 0.0552, 0.0507, 0.0509], "prices": [88.35, 89.1, 88.13, 90.6, 85.61, 85.61], "days_active": 6}, "KHC": {"dates": ["2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14"], "weights": [-0.0093, -0.0094, -0.0095, -0.0098, -0.0114, -0.0111, -0.0111, -0.0113, -0.0113, -0.0115, -0.0117, -0.0137, -0.0137, -0.0099, -0.0103], "prices": [23.3678, 22.3449, 22.817, 23.1907, 23.3088, 22.8072, 22.758, 23.3481, 23.1121, 23.4759, 24.0759, 24.0415, 24.2332, 24.3906, 24.3906], "days_active": 15}, "LITE": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0492, 0.0651, 0.0635, 0.0703, 0.0635, 0.0646, 0.0812, 0.0832, 0.0757, 0.0736, 0.0609, 0.0609, 0.0617, 0.0552, 0.053, 0.0561, 0.0609, 0.063, 0.0586, 0.0627, 0.0628, 0.0654, 0.0718, 0.0937, 0.0937, 0.1326, 0.1376, 0.138, 0.1375, 0.1428, 0.1374, 0.136, 0.136], "prices": [368.59, 386.11, 357.05, 397.42, 392.88, 351.42, 339.87, 361.33, 331.62, 343.27, 324.25, 324.25, 356.83, 354.49, 339.19, 332.45, 370.66, 385.0, 381.44, 391.84, 423.42, 435.1, 465.54, 504.42, 551.99, 562.74, 562.74, 600.42, 594.26, 635.64, 667.77, 674.73, 688.27], "days_active": 33}, "MA": {"dates": ["2026-01-13", "2026-01-14"], "weights": [0.0508, 0.0509], "prices": [544.99, 546.82], "days_active": 2}, "MELI": {"dates": ["2026-02-05", "2026-02-06"], "weights": [0.0495, 0.0495], "prices": [2034.76, 1970.15], "days_active": 2}, "META": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.1438, 0.1361, 0.1409, 0.1347, 0.1316, 0.1733, 0.2042, 0.2305, 0.2186, 0.2222, 0.2211, 0.2211, 0.202, 0.2204, 0.2258, 0.2272, 0.1867, 0.2759, 0.4069, 0.3975, 0.354, 0.2948, 0.2802, 0.2675, 0.2675, 0.3499, 0.332, 0.3288, 0.3605, 0.3631, 0.38, 0.2492, 0.2492], "prices": [660.09, 650.41, 658.79, 660.62, 648.69, 653.06, 641.97, 631.09, 615.52, 620.8, 620.25, 620.25, 604.12, 647.63, 658.76, 672.36, 672.97, 668.73, 738.31, 716.5, 706.41, 691.7, 668.99, 670.21, 661.46, 639.77, 639.77, 639.29, 643.22, 644.78, 655.66, 637.25, 639.3], "days_active": 33}, "MRVL": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [-0.0314, -0.0305, -0.0267, -0.0276, -0.028, -0.0295, -0.0295, -0.0148, -0.0108, -0.0108, -0.011, -0.011, -0.0216, -0.0237, -0.0246, -0.025, -0.0241, -0.0242, -0.0252, -0.016, -0.0161, -0.0262, -0.0262, -0.0166, -0.0166, -0.0394, -0.0388, -0.039, -0.0484, -0.0485, -0.0489, -0.0504, -0.0504], "prices": [84.9189, 89.3257, 90.1651, 88.1666, 84.5791, 83.22, 82.89, 83.05, 81.21, 80.38, 80.46, 80.46, 79.8, 83.1, 80.23, 81.77, 82.93, 83.62, 81.34, 78.92, 78.66, 75.54, 73.73, 74.21, 80.28, 78.61, 78.61, 79.01, 79.09, 79.61, 79.48, 77.79, 78.39], "days_active": 33}, "MSFT": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06"], "weights": [0.1546, 0.1786, 0.179, 0.2391, 0.2392, 0.2654, 0.2657, 0.2633, 0.2892, 0.2861, 0.3052, 0.3052, 0.144, 0.1232, 0.1419, 0.2249, 0.1869, 0.1527, 0.0747, 0.0739, 0.0323, 0.0324, 0.049, 0.049], "prices": [482.5187, 471.863, 471.7732, 477.4203, 482.369, 478.1886, 476.0933, 469.5982, 458.3339, 455.6201, 458.8128, 458.8128, 453.4849, 450.1126, 464.8889, 469.209, 479.4856, 480.5332, 429.3101, 422.4059, 410.2736, 413.2468, 392.7735, 400.2265], "days_active": 24}, "MSXXQE7": {"dates": ["2026-02-23", "2026-02-24"], "weights": [-0.2, -0.2], "prices": [null, null], "days_active": 2}, "NFLX": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [-0.0289, -0.0241, -0.0251, -0.0239, -0.0224, -0.021, -0.0213, -0.0221, -0.0194, -0.0184, -0.0182, -0.0182, -0.0079, -0.0073, -0.0105, -0.0105, -0.014, -0.0156, -0.0157, -0.0173, -0.0177, -0.0176, -0.0123, -0.0123], "prices": [93.76, 90.99, 91.46, 90.65, 90.73, 89.46, 89.41, 90.32, 88.55, 88.05, 88.0, 88.0, 79.94, 80.16, 80.87, 82.2, 76.87, 76.87, 77.0, 77.99, 77.0, 78.67, 76.02, 78.04], "days_active": 24}, "NQA": {"dates": ["2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [-0.6362, -1.6921, -2.6748, -2.4583, -0.2949, -1.2762, -1.2754, -0.6917, -2.1686, -0.5938, 0.687, 0.6867], "prices": [null, null, null, null, null, null, null, null, null, null, null, null], "days_active": 12}, "NVDA": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.2275, 0.234, 0.2502, 0.1772, 0.1692, 0.1884, 0.1878, 0.1876, 0.1859, 0.2106, 0.2096, 0.2097, 0.1944, 0.1772, 0.1801, 0.179, 0.1811, 0.2822, 0.166, 0.2157, 0.2054, 0.2172, 0.2141, 0.2138, 0.2138, 0.5531, 0.5479, 0.6205, 0.6482, 0.641, 0.6586, 0.5398, 0.5398], "prices": [186.4899, 188.8398, 188.1098, 187.2299, 189.0998, 184.85, 184.93, 185.7999, 183.1301, 187.0399, 186.2199, 186.2199, 178.0604, 184.83, 187.6598, 186.4599, 188.5098, 191.5096, 192.4996, 191.1197, 185.6, 180.3302, 174.1806, 171.8707, 185.4, 182.8001, 182.8001, 184.96, 187.9698, 187.8898, 189.8097, 191.5396, 192.8396], "days_active": 33}, "QQQ": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-15", "2026-01-16", "2026-01-23", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-19", "2026-02-20"], "weights": [-0.1237, -0.4145, -0.2831, -0.0888, -0.0926, -0.076, -0.0556, -0.2866, 0.0453, 0.2417, -0.1005, -0.2897, -1.1606, -0.0607, -0.0061, -0.2046, -0.2046, -0.3907, -0.4046, 0.2747, -0.2918, -0.4222], "prices": [614.31, 613.12, 617.99, 623.42, 624.02, 626.65, 627.17, 621.78, 621.26, 622.72, 633.22, 629.43, 621.87, 626.14, 616.52, 597.03, 609.65, 601.92, 601.92, 601.3, 603.47, 608.81], "days_active": 22}, "QQQE": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [-0.3036, -0.3023, -0.3054, -0.3097, -0.3081, -0.3107, -0.2517, -0.2134, -0.0463, -0.0463, -0.0462, -0.0462, -1.314, -1.2978, -1.2978], "prices": [102.31, 102.36, 103.38, 105.25, 104.84, 105.19, 105.08, 104.74, 104.32, 104.48, 104.28, 104.28, 103.24, 101.74, 102.83], "days_active": 15}, "RIOT": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0125, 0.0138, 0.0144, 0.0149, 0.0149, 0.0149, 0.0161, 0.0162, 0.0169, 0.0162, 0.0188, 0.0188, 0.0173, 0.0171, 0.0182, 0.0214, 0.023, 0.0231, 0.0219, 0.0223, 0.0227, 0.0227, 0.0217, 0.0196, 0.0196, 0.0169, 0.0181, 0.0174, 0.0184, 0.0184, 0.0186, 0.0186, 0.0186], "prices": [12.67, 14.16, 14.79, 14.98, 15.27, 15.32, 16.45, 16.75, 17.31, 16.57, 19.24, 19.24, 18.1, 17.08, 17.28, 16.23, 17.55, 17.55, 16.97, 15.47, 15.32, 15.34, 14.14, 12.06, 14.45, 15.22, 15.22, 14.65, 15.49, 16.22, 15.68, 15.65, 16.5], "days_active": 33}, "RSP": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [-0.0991, -0.0993, -0.1002, -0.1524, -0.1538, -0.1545, -0.1547, -0.1094, -0.1101, -0.1106, -0.0883, -0.0883, -0.1081, -0.1079, -0.1076, -0.1894, -0.3948, -0.4026, -0.6477, -0.6477], "prices": [191.56, 192.86, 194.65, 197.0, 194.79, 197.6, 197.78, 197.78, 198.68, 199.56, 199.05, 199.05, 199.24, 198.93, 198.26, 198.52, 198.08, 204.09, 201.85, 203.46], "days_active": 20}, "SMH": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09"], "weights": [-0.0292, -0.0142, -0.009, -0.0024, -0.0029, -0.0017], "prices": [360.13, 373.3, 377.59, 387.62, 385.02, 389.22], "days_active": 6}, "SNDK": {"dates": ["2026-01-20", "2026-01-22", "2026-01-23"], "weights": [0.0119, 0.0124, 0.0135], "prices": [453.12, 503.44, 473.83], "days_active": 3}, "SOXX": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13"], "weights": [-0.0652, -0.0672, -0.0439, -0.0199, -0.0195, -0.0201, -0.0202, -0.0204], "prices": [301.15, 313.69, 318.06, 328.35, 324.89, 328.78, 330.35, 333.3], "days_active": 8}, "TSM": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.2247, 0.2806, 0.3073, 0.3258, 0.3262, 0.3627, 0.3645, 0.3008, 0.2163, 0.4086, 0.3955, 0.3955, 0.4951, 0.5216, 0.5221, 0.5193, 0.5123, 0.5254, 0.559, 0.5842, 0.5719, 0.59, 0.6006, 0.5101, 0.5101, 0.494, 0.5219, 0.5687, 0.5733, 0.5736, 0.5918, 0.4308, 0.4308], "prices": [303.89, 319.61, 322.25, 327.43, 318.68, 323.63, 331.77, 331.21, 327.11, 341.64, 342.4, 342.4, 327.16, 327.37, 334.87, 332.71, 338.34, 342.3, 339.55, 330.56, 341.36, 335.75, 325.74, 330.73, 348.85, 366.36, 366.36, 364.2, 362.26, 360.39, 370.54, 370.04, 385.75], "days_active": 33}, "V": {"dates": ["2026-01-13", "2026-01-14"], "weights": [0.051, 0.0511], "prices": [327.2053, 328.4926], "days_active": 2}, "WBD": {"dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12"], "weights": [0.0403, 0.0398, 0.0399, 0.0399, 0.0398, 0.0404, 0.0397], "prices": [28.82, 28.51, 28.53, 28.47, 28.59, 28.89, 28.4], "days_active": 7}, "WMB": {"dates": ["2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights": [0.0743, 0.0735, 0.0886, 0.0886, 0.1502, 0.1526, 0.1519, 0.1523, 0.1517, 0.1534, 0.1541, 0.1541], "prices": [68.5, 66.46, 67.42, 66.92, 72.28, 72.28, 71.96, 72.14, 72.17, 72.98, 72.98, 73.5], "days_active": 12}, "XLF": {"dates": ["2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14"], "weights": [0.0996, 0.0997, 0.0997, 0.102, 0.1026, 0.1016, 0.102, 0.1012, 0.1012, 0.102, 0.102, 0.1031, 0.0525, 0.0526, 0.0523, 0.0523, 0.0481, 0.0004], "prices": [54.37, 54.44, 54.44, 53.2, 53.81, 53.07, 53.41, 53.0, 52.99, 53.55, 53.44, 54.03, 53.53, 53.96, 53.29, 54.26, 51.65, 51.65], "days_active": 18}, "XLP": {"dates": ["2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-20"], "weights": [-0.1005, -0.1001, -0.1001, -0.0946, -0.0944, -0.0946, -0.095, -0.0955, -0.0945, -0.0944, -0.0956, -0.097, -0.0986, -0.0996, -0.0998, -0.0998, -0.0972, -0.032, -0.1042], "prices": [82.37, 82.11, 82.11, 82.36, 82.27, 82.91, 82.78, 83.16, 82.32, 82.13, 83.51, 84.5, 85.87, 86.99, 86.92, 87.94, 89.51, 89.51, 87.89], "days_active": 19}}, "overview_traces": [{"name": "META", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.1438, 0.1361, 0.1409, 0.1347, 0.1316, 0.1733, 0.2042, 0.2305, 0.2186, 0.2222, 0.2211, 0.2211, 0.202, 0.2204, 0.2258, 0.2272, 0.1867, 0.2759, 0.4069, 0.3975, 0.354, 0.2948, 0.2802, 0.2675, 0.2675, 0.3499, 0.332, 0.3288, 0.3605, 0.3631, 0.38, 0.2492, 0.2492], "weights_signed": [0.1438, 0.1361, 0.1409, 0.1347, 0.1316, 0.1733, 0.2042, 0.2305, 0.2186, 0.2222, 0.2211, 0.2211, 0.202, 0.2204, 0.2258, 0.2272, 0.1867, 0.2759, 0.4069, 0.3975, 0.354, 0.2948, 0.2802, 0.2675, 0.2675, 0.3499, 0.332, 0.3288, 0.3605, 0.3631, 0.38, 0.2492, 0.2492]}, {"name": "AMZN", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0769, 0.0753, 0.0775, 0.1281, 0.1303, 0.1803, 0.1797, 0.1765, 0.1725, 0.1736, 0.1743, 0.1743, 0.1104, 0.111, 0.1392, 0.2466, 0.2145, 0.1839, 0.1504, 0.1632, 0.149, 0.1464, 0.1459, 0.0489, 0.0489, 0.0022, 0.0052, 0.0026, 0.0136, 0.0152, 0.1033, 0.0606, 0.0606], "weights_signed": [0.0769, 0.0753, 0.0775, 0.1281, 0.1303, 0.1803, 0.1797, 0.1765, 0.1725, 0.1736, 0.1743, 0.1743, 0.1104, 0.111, 0.1392, 0.2466, 0.2145, 0.1839, 0.1504, 0.1632, 0.149, 0.1464, 0.1459, 0.0489, 0.0489, 0.0022, 0.0052, -0.0026, -0.0136, -0.0152, 0.1033, 0.0606, 0.0606]}, {"name": "NVDA", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.2275, 0.234, 0.2502, 0.1772, 0.1692, 0.1884, 0.1878, 0.1876, 0.1859, 0.2106, 0.2096, 0.2097, 0.1944, 0.1772, 0.1801, 0.179, 0.1811, 0.2822, 0.166, 0.2157, 0.2054, 0.2172, 0.2141, 0.2138, 0.2138, 0.5531, 0.5479, 0.6205, 0.6482, 0.641, 0.6586, 0.5398, 0.5398], "weights_signed": [0.2275, 0.234, 0.2502, 0.1772, 0.1692, 0.1884, 0.1878, 0.1876, 0.1859, 0.2106, 0.2096, 0.2097, 0.1944, 0.1772, 0.1801, 0.179, 0.1811, 0.2822, 0.166, 0.2157, 0.2054, 0.2172, 0.2141, 0.2138, 0.2138, 0.5531, 0.5479, 0.6205, 0.6482, 0.641, 0.6586, 0.5398, 0.5398]}, {"name": "TSM", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.2247, 0.2806, 0.3073, 0.3258, 0.3262, 0.3627, 0.3645, 0.3008, 0.2163, 0.4086, 0.3955, 0.3955, 0.4951, 0.5216, 0.5221, 0.5193, 0.5123, 0.5254, 0.559, 0.5842, 0.5719, 0.59, 0.6006, 0.5101, 0.5101, 0.494, 0.5219, 0.5687, 0.5733, 0.5736, 0.5918, 0.4308, 0.4308], "weights_signed": [0.2247, 0.2806, 0.3073, 0.3258, 0.3262, 0.3627, 0.3645, 0.3008, 0.2163, 0.4086, 0.3955, 0.3955, 0.4951, 0.5216, 0.5221, 0.5193, 0.5123, 0.5254, 0.559, 0.5842, 0.5719, 0.59, 0.6006, 0.5101, 0.5101, 0.494, 0.5219, 0.5687, 0.5733, 0.5736, 0.5918, 0.4308, 0.4308]}, {"name": "AVGO", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.1021, 0.113, 0.0871, 0.0895, 0.0864, 0.0901, 0.0922, 0.0927, 0.1203, 0.1445, 0.2028, 0.2028, 0.1196, 0.1203, 0.1175, 0.0877, 0.0858, 0.1214, 0.1021, 0.1026, 0.0837, 0.0748, 0.0725, 0.1409, 0.1409, 0.2952, 0.2389, 0.2484, 0.2042, 0.2018, 0.2092, 0.2514, 0.0707], "weights_signed": [0.1021, 0.113, 0.0871, 0.0895, 0.0864, 0.0901, 0.0922, 0.0927, 0.1203, 0.1445, 0.2028, 0.2028, 0.1196, 0.1203, 0.1175, 0.0877, 0.0858, 0.1214, 0.1021, 0.1026, 0.0837, 0.0748, 0.0725, 0.1409, 0.1409, 0.2952, 0.2389, 0.2484, 0.2042, 0.2018, 0.2092, 0.2514, 0.0707]}, {"name": "MRVL", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0314, 0.0305, 0.0267, 0.0276, 0.028, 0.0295, 0.0295, 0.0148, 0.0108, 0.0108, 0.011, 0.011, 0.0216, 0.0237, 0.0246, 0.025, 0.0241, 0.0242, 0.0252, 0.016, 0.0161, 0.0262, 0.0262, 0.0166, 0.0166, 0.0394, 0.0388, 0.039, 0.0484, 0.0485, 0.0489, 0.0504, 0.0504], "weights_signed": [-0.0314, -0.0305, -0.0267, -0.0276, -0.028, -0.0295, -0.0295, -0.0148, -0.0108, -0.0108, -0.011, -0.011, -0.0216, -0.0237, -0.0246, -0.025, -0.0241, -0.0242, -0.0252, -0.016, -0.0161, -0.0262, -0.0262, -0.0166, -0.0166, -0.0394, -0.0388, -0.039, -0.0484, -0.0485, -0.0489, -0.0504, -0.0504]}, {"name": "EWY", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.1186, 0.1245, 0.1276, 0.2013, 0.1529, 0.13, 0.1542, 0.2123, 0.2164, 0.2192, 0.2622, 0.2622, 0.2026, 0.2023, 0.203, 0.2056, 0.2023, 0.2343, 0.2053, 0.2412, 0.3247, 0.1987, 0.1847, 0.1741, 0.1741, 0.1995, 0.2043, 0.2966, 0.307, 0.1628, 0.156, 0.221, 0.221], "weights_signed": [0.1186, 0.1245, 0.1276, 0.2013, 0.1529, 0.13, 0.1542, 0.2123, 0.2164, 0.2192, 0.2622, 0.2622, 0.2026, 0.2023, 0.203, 0.2056, 0.2023, 0.2343, 0.2053, 0.2412, 0.3247, 0.1987, 0.1847, 0.1741, 0.1741, 0.1995, 0.2043, 0.2966, 0.307, 0.1628, 0.156, 0.221, 0.221]}, {"name": "LITE", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0492, 0.0651, 0.0635, 0.0703, 0.0635, 0.0646, 0.0812, 0.0832, 0.0757, 0.0736, 0.0609, 0.0609, 0.0617, 0.0552, 0.053, 0.0561, 0.0609, 0.063, 0.0586, 0.0627, 0.0628, 0.0654, 0.0718, 0.0937, 0.0937, 0.1326, 0.1376, 0.138, 0.1375, 0.1428, 0.1374, 0.136, 0.136], "weights_signed": [0.0492, 0.0651, 0.0635, 0.0703, 0.0635, 0.0646, 0.0812, 0.0832, 0.0757, 0.0736, 0.0609, 0.0609, 0.0617, 0.0552, 0.053, 0.0561, 0.0609, 0.063, 0.0586, 0.0627, 0.0628, 0.0654, 0.0718, 0.0937, 0.0937, 0.1326, 0.1376, 0.138, 0.1375, 0.1428, 0.1374, 0.136, 0.136]}, {"name": "RIOT", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0125, 0.0138, 0.0144, 0.0149, 0.0149, 0.0149, 0.0161, 0.0162, 0.0169, 0.0162, 0.0188, 0.0188, 0.0173, 0.0171, 0.0182, 0.0214, 0.023, 0.0231, 0.0219, 0.0223, 0.0227, 0.0227, 0.0217, 0.0196, 0.0196, 0.0169, 0.0181, 0.0174, 0.0184, 0.0184, 0.0186, 0.0186, 0.0186], "weights_signed": [0.0125, 0.0138, 0.0144, 0.0149, 0.0149, 0.0149, 0.0161, 0.0162, 0.0169, 0.0162, 0.0188, 0.0188, 0.0173, 0.0171, 0.0182, 0.0214, 0.023, 0.0231, 0.0219, 0.0223, 0.0227, 0.0227, 0.0217, 0.0196, 0.0196, 0.0169, 0.0181, 0.0174, 0.0184, 0.0184, 0.0186, 0.0186, 0.0186]}, {"name": "BIDU", "dates": ["2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0133, 0.0188, 0.0229, 0.022, 0.0223, 0.0237, 0.0232, 0.0234, 0.0233, 0.0233, 0.0233, 0.0237, 0.0238, 0.0237, 0.0229, 0.0231, 0.0231, 0.023, 0.0224, 0.0218, 0.0212, 0.0204, 0.0227, 0.0227, 0.0247, 0.0244, 0.0245, 0.0262, 0.0261, 0.0257, 0.0255, 0.0255], "weights_signed": [0.0133, 0.0188, 0.0229, 0.022, 0.0223, 0.0237, 0.0232, 0.0234, 0.0233, 0.0233, 0.0233, 0.0237, 0.0238, 0.0237, 0.0229, 0.0231, 0.0231, 0.023, 0.0224, 0.0218, 0.0212, 0.0204, 0.0227, 0.0227, 0.0247, 0.0244, 0.0245, 0.0262, 0.0261, 0.0257, 0.0255, 0.0255]}, {"name": "BABA", "dates": ["2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0133, 0.0056, 0.022, 0.0231, 0.0226, 0.0249, 0.025, 0.0255, 0.0256, 0.0248, 0.0248, 0.0238, 0.0253, 0.0244, 0.0242, 0.0243, 0.0248, 0.0246, 0.0239, 0.0237, 0.0231, 0.0229, 0.0222, 0.0222, 0.0231, 0.0227, 0.0226, 0.0245, 0.0244, 0.0243, 0.0241, 0.0241], "weights_signed": [0.0133, 0.0056, 0.022, 0.0231, 0.0226, 0.0249, 0.025, 0.0255, 0.0256, 0.0248, 0.0248, 0.0238, 0.0253, 0.0244, 0.0242, 0.0243, 0.0248, 0.0246, 0.0239, 0.0237, 0.0231, 0.0229, 0.0222, 0.0222, 0.0231, 0.0227, 0.0226, 0.0245, 0.0244, 0.0243, 0.0241, 0.0241]}, {"name": "GDX", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0222, 0.0481, 0.0497, 0.0759, 0.0992, 0.1031, 0.1066, 0.1075, 0.1199, 0.1202, 0.1204, 0.1204, 0.108, 0.1131, 0.1148, 0.0987, 0.1093, 0.1359, 0.1752, 0.1165, 0.1314, 0.0614, 0.0592, 0.0606, 0.0609, 0.0873, 0.0933, 0.0933], "weights_signed": [0.0222, 0.0481, 0.0497, 0.0759, 0.0992, 0.1031, 0.1066, 0.1075, 0.1199, 0.1202, 0.1204, 0.1204, 0.108, 0.1131, 0.1148, 0.0987, 0.1093, 0.1359, 0.1752, 0.1165, 0.1314, 0.0614, 0.0592, 0.0606, 0.0609, 0.0873, 0.0933, 0.0933]}, {"name": "GOOG", "dates": ["2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.026, 0.0263, 0.0265, 0.0265, 0.0263, 0.0261, 0.0261, 0.2027, 0.2042, 0.2043, 0.1427, 0.1223, 0.1228, 0.2028, 0.2048, 0.2087, 0.2062, 0.2071, 0.1992, 0.1992, 0.0245, 0.0242, 0.024, 0.1499, 0.1505, 0.2549, 0.3513, 0.3513], "weights_signed": [0.026, 0.0263, 0.0265, 0.0265, 0.0263, 0.0261, 0.0261, 0.2027, 0.2042, 0.2043, 0.1427, 0.1223, 0.1228, 0.2028, 0.2048, 0.2087, 0.2062, 0.2071, 0.1992, 0.1992, 0.0245, 0.0242, 0.024, 0.1499, 0.1505, 0.2549, 0.3513, 0.3513]}, {"name": "ASHR", "dates": ["2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0477, 0.0769, 0.0658, 0.0764, 0.0556, 0.0556, 0.0768, 0.0753, 0.0623, 0.0689, 0.071, 0.0622, 0.068, 0.0539, 0.0478, 0.0528, 0.0555, 0.017, 0.017, 0.0581, 0.0494, 0.0366, 0.1435, 0.0143, 0.0144, 0.0731, 0.0731], "weights_signed": [0.0477, 0.0769, 0.0658, 0.0764, 0.0556, 0.0556, 0.0768, 0.0753, 0.0623, 0.0689, 0.071, 0.0622, 0.068, 0.0539, 0.0478, 0.0528, 0.0555, 0.017, 0.017, 0.0581, 0.0494, 0.0366, 0.1435, 0.0143, 0.0144, 0.0731, 0.0731]}, {"name": "MSFT", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06"], "weights_abs": [0.1546, 0.1786, 0.179, 0.2391, 0.2392, 0.2654, 0.2657, 0.2633, 0.2892, 0.2861, 0.3052, 0.3052, 0.144, 0.1232, 0.1419, 0.2249, 0.1869, 0.1527, 0.0747, 0.0739, 0.0323, 0.0324, 0.049, 0.049], "weights_signed": [0.1546, 0.1786, 0.179, 0.2391, 0.2392, 0.2654, 0.2657, 0.2633, 0.2892, 0.2861, 0.3052, 0.3052, 0.144, 0.1232, 0.1419, 0.2249, 0.1869, 0.1527, 0.0747, 0.0739, 0.0323, 0.0324, 0.049, 0.049]}, {"name": "NFLX", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0289, 0.0241, 0.0251, 0.0239, 0.0224, 0.021, 0.0213, 0.0221, 0.0194, 0.0184, 0.0182, 0.0182, 0.0079, 0.0073, 0.0105, 0.0105, 0.014, 0.0156, 0.0157, 0.0173, 0.0177, 0.0176, 0.0123, 0.0123], "weights_signed": [-0.0289, -0.0241, -0.0251, -0.0239, -0.0224, -0.021, -0.0213, -0.0221, -0.0194, -0.0184, -0.0182, -0.0182, -0.0079, -0.0073, -0.0105, -0.0105, -0.014, -0.0156, -0.0157, -0.0173, -0.0177, -0.0176, -0.0123, -0.0123]}, {"name": "QQQ", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-15", "2026-01-16", "2026-01-23", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-19", "2026-02-20"], "weights_abs": [0.1237, 0.4145, 0.2831, 0.0888, 0.0926, 0.076, 0.0556, 0.2866, 0.0453, 0.2417, 0.1005, 0.2897, 1.1606, 0.0607, 0.0061, 0.2046, 0.2046, 0.3907, 0.4046, 0.2747, 0.2918, 0.4222], "weights_signed": [-0.1237, -0.4145, -0.2831, -0.0888, -0.0926, -0.076, -0.0556, -0.2866, 0.0453, 0.2417, -0.1005, -0.2897, -1.1606, -0.0607, -0.0061, -0.2046, -0.2046, -0.3907, -0.4046, 0.2747, -0.2918, -0.4222]}, {"name": "RSP", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0991, 0.0993, 0.1002, 0.1524, 0.1538, 0.1545, 0.1547, 0.1094, 0.1101, 0.1106, 0.0883, 0.0883, 0.1081, 0.1079, 0.1076, 0.1894, 0.3948, 0.4026, 0.6477, 0.6477], "weights_signed": [-0.0991, -0.0993, -0.1002, -0.1524, -0.1538, -0.1545, -0.1547, -0.1094, -0.1101, -0.1106, -0.0883, -0.0883, -0.1081, -0.1079, -0.1076, -0.1894, -0.3948, -0.4026, -0.6477, -0.6477]}, {"name": "000660 KS", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0301, 0.0312, 0.0322, 0.034, 0.0349, 0.034, 0.0338, 0.0333, 0.0334, 0.0342, 0.0342, 0.0342, 0.0385, 0.038, 0.038, 0.038, 0.038, 0.0404, 0.041, 0.041], "weights_signed": [0.0301, 0.0312, 0.0322, 0.034, 0.0349, 0.034, 0.0338, 0.0333, 0.0334, 0.0342, 0.0342, 0.0342, 0.0385, 0.038, 0.038, 0.038, 0.038, 0.0404, 0.041, 0.041]}, {"name": "XLP", "dates": ["2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-20"], "weights_abs": [0.1005, 0.1001, 0.1001, 0.0946, 0.0944, 0.0946, 0.095, 0.0955, 0.0945, 0.0944, 0.0956, 0.097, 0.0986, 0.0996, 0.0998, 0.0998, 0.0972, 0.032, 0.1042], "weights_signed": [-0.1005, -0.1001, -0.1001, -0.0946, -0.0944, -0.0946, -0.095, -0.0955, -0.0945, -0.0944, -0.0956, -0.097, -0.0986, -0.0996, -0.0998, -0.0998, -0.0972, -0.032, -0.1042]}, {"name": "INTC", "dates": ["2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0133, 0.0135, 0.0134, 0.031, 0.0236, 0.0226, 0.0269, 0.0224, 0.0222, 0.0247, 0.0247, 0.0269, 0.0275, 0.0281, 0.0265, 0.025, 0.0231, 0.0316, 0.0316], "weights_signed": [0.0133, 0.0135, 0.0134, 0.031, 0.0236, 0.0226, 0.0269, 0.0224, 0.0222, 0.0247, 0.0247, 0.0269, 0.0275, 0.0281, 0.0265, 0.025, 0.0231, 0.0316, 0.0316]}, {"name": "XLF", "dates": ["2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14"], "weights_abs": [0.0996, 0.0997, 0.0997, 0.102, 0.1026, 0.1016, 0.102, 0.1012, 0.1012, 0.102, 0.102, 0.1031, 0.0525, 0.0526, 0.0523, 0.0523, 0.0481, 0.0004], "weights_signed": [0.0996, 0.0997, 0.0997, 0.102, 0.1026, 0.1016, 0.102, 0.1012, 0.1012, 0.102, 0.102, 0.1031, 0.0525, 0.0526, 0.0523, 0.0523, 0.0481, 0.0004]}, {"name": "CSCO", "dates": ["2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0581, 0.0999, 0.1002, 0.0998, 0.0992, 0.1068, 0.1551, 0.1564, 0.1537, 0.1537, 0.0817, 0.0994, 0.1113, 0.1215, 0.1201, 0.1197, 0.019, 0.019], "weights_signed": [0.0581, 0.0999, 0.1002, 0.0998, 0.0992, 0.1068, 0.1551, 0.1564, 0.1537, 0.1537, 0.0817, 0.0994, 0.1113, 0.1215, 0.1201, 0.1197, 0.019, 0.019]}, {"name": "QQQE", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.3036, 0.3023, 0.3054, 0.3097, 0.3081, 0.3107, 0.2517, 0.2134, 0.0463, 0.0463, 0.0462, 0.0462, 1.314, 1.2978, 1.2978], "weights_signed": [-0.3036, -0.3023, -0.3054, -0.3097, -0.3081, -0.3107, -0.2517, -0.2134, -0.0463, -0.0463, -0.0462, -0.0462, -1.314, -1.2978, -1.2978]}, {"name": "KHC", "dates": ["2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14"], "weights_abs": [0.0093, 0.0094, 0.0095, 0.0098, 0.0114, 0.0111, 0.0111, 0.0113, 0.0113, 0.0115, 0.0117, 0.0137, 0.0137, 0.0099, 0.0103], "weights_signed": [-0.0093, -0.0094, -0.0095, -0.0098, -0.0114, -0.0111, -0.0111, -0.0113, -0.0113, -0.0115, -0.0117, -0.0137, -0.0137, -0.0099, -0.0103]}, {"name": "000660 KP", "dates": ["2026-01-20", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06"], "weights_abs": [0.0506, 0.0515, 0.0523, 0.0511, 0.0557, 0.0534, 0.0548, 0.0366, 0.0332, 0.0364, 0.0359, 0.0375, 0.0375], "weights_signed": [0.0506, 0.0515, 0.0523, 0.0511, 0.0557, 0.0534, 0.0548, 0.0366, 0.0332, 0.0364, 0.0359, 0.0375, 0.0375]}, {"name": "005930 KS", "dates": ["2026-01-30", "2026-02-02", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0143, 0.0269, 0.0298, 0.0325, 0.0325, 0.0351, 0.0354, 0.0354, 0.0354, 0.0365, 0.0369, 0.0377, 0.0484], "weights_signed": [0.0143, 0.0269, 0.0298, 0.0325, 0.0325, 0.0351, 0.0354, 0.0354, 0.0354, 0.0365, 0.0369, 0.0377, 0.0484]}, {"name": "COHR", "dates": ["2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-02-14", "2026-02-23", "2026-02-24"], "weights_abs": [0.0241, 0.0221, 0.0246, 0.0256, 0.026, 0.0255, 0.0175, 0.017, 0.017, 0.0248, 0.0582, 0.0582], "weights_signed": [0.0241, 0.0221, 0.0246, 0.0256, 0.026, 0.0255, 0.0175, 0.017, 0.017, 0.0248, 0.0582, 0.0582]}, {"name": "AKAM", "dates": ["2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19"], "weights_abs": [0.05, 0.0494, 0.0259, 0.0294, 0.0311, 0.0391, 0.0393, 0.0394, 0.0587, 0.0883, 0.0999, 0.0992], "weights_signed": [0.05, 0.0494, 0.0259, 0.0294, 0.0311, 0.0391, 0.0393, 0.0394, 0.0587, 0.0883, 0.0999, 0.0992]}, {"name": "402340 KS", "dates": ["2026-02-02", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0042, 0.0147, 0.0182, 0.0182, 0.023, 0.0226, 0.0226, 0.0226, 0.0227, 0.0231, 0.033, 0.033], "weights_signed": [0.0042, 0.0147, 0.0182, 0.0182, 0.023, 0.0226, 0.0226, 0.0226, 0.0227, 0.0231, 0.033, 0.033]}, {"name": "NQA", "dates": ["2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.6362, 1.6921, 2.6748, 2.4583, 0.2949, 1.2762, 1.2754, 0.6917, 2.1686, 0.5938, 0.687, 0.6867], "weights_signed": [-0.6362, -1.6921, -2.6748, -2.4583, -0.2949, -1.2762, -1.2754, -0.6917, -2.1686, -0.5938, 0.687, 0.6867]}, {"name": "WMB", "dates": ["2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0743, 0.0735, 0.0886, 0.0886, 0.1502, 0.1526, 0.1519, 0.1523, 0.1517, 0.1534, 0.1541, 0.1541], "weights_signed": [0.0743, 0.0735, 0.0886, 0.0886, 0.1502, 0.1526, 0.1519, 0.1523, 0.1517, 0.1534, 0.1541, 0.1541]}, {"name": "AAPL", "dates": ["2026-01-26", "2026-01-27", "2026-01-28", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06"], "weights_abs": [0.1066, 0.1369, 0.1156, 0.1014, 0.1439, 0.2009, 0.1951, 0.0923, 0.0923], "weights_signed": [0.1066, 0.1369, 0.1156, 0.1014, 0.1439, 0.2009, 0.1951, 0.0923, 0.0923]}, {"name": "SOXX", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12", "2026-01-13"], "weights_abs": [0.0652, 0.0672, 0.0439, 0.0199, 0.0195, 0.0201, 0.0202, 0.0204], "weights_signed": [-0.0652, -0.0672, -0.0439, -0.0199, -0.0195, -0.0201, -0.0202, -0.0204]}, {"name": "2330 TT", "dates": ["2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0433, 0.0432, 0.0432, 0.0432, 0.0432, 0.0432, 0.043, 0.043], "weights_signed": [0.0433, 0.0432, 0.0432, 0.0432, 0.0432, 0.0432, 0.043, 0.043]}, {"name": "005935 KS", "dates": ["2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0148, 0.0154, 0.0154, 0.0154, 0.016, 0.0163, 0.0239, 0.0164], "weights_signed": [0.0148, 0.0154, 0.0154, 0.0154, 0.016, 0.0163, 0.0239, 0.0164]}, {"name": "AGX", "dates": ["2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0442, 0.0536, 0.068, 0.0692, 0.0719, 0.1003, 0.1009, 0.1009], "weights_signed": [0.0442, 0.0536, 0.068, 0.0692, 0.0719, 0.1003, 0.1009, 0.1009]}, {"name": "GEV", "dates": ["2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0312, 0.0307, 0.0313, 0.0313, 0.0319, 0.0319, 0.0318, 0.0318], "weights_signed": [0.0312, 0.0307, 0.0313, 0.0313, 0.0319, 0.0319, 0.0318, 0.0318]}, {"name": "ENR GY", "dates": ["2026-02-13", "2026-02-14", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24"], "weights_abs": [0.0152, 0.0152, 0.0151, 0.0156, 0.0153, 0.0154, 0.031, 0.0309], "weights_signed": [0.0152, 0.0152, 0.0151, 0.0156, 0.0153, 0.0154, 0.031, 0.0309]}, {"name": "WBD", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-12"], "weights_abs": [0.0403, 0.0398, 0.0399, 0.0399, 0.0398, 0.0404, 0.0397], "weights_signed": [0.0403, 0.0398, 0.0399, 0.0399, 0.0398, 0.0404, 0.0397]}, {"name": "IGV", "dates": ["2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06"], "weights_abs": [0.0171, 0.0976, 0.028, 0.0713, 0.0691, 0.0382, 0.0382], "weights_signed": [-0.0171, -0.0976, -0.028, -0.0713, -0.0691, -0.0382, -0.0382]}, {"name": "SMH", "dates": ["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09"], "weights_abs": [0.0292, 0.0142, 0.009, 0.0024, 0.0029, 0.0017], "weights_signed": [-0.0292, -0.0142, -0.009, -0.0024, -0.0029, -0.0017]}, {"name": "KBWB", "dates": ["2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-13", "2026-02-14"], "weights_abs": [0.0553, 0.056, 0.0552, 0.0552, 0.0507, 0.0509], "weights_signed": [0.0553, 0.056, 0.0552, 0.0552, 0.0507, 0.0509]}, {"name": "1OH6", "dates": ["2026-01-20", "2026-02-02", "2026-02-04", "2026-02-05", "2026-02-06"], "weights_abs": [0.0714, 0.2149, 0.1044, 0.5372, 0.0024], "weights_signed": [-0.0714, -0.2149, 0.1044, 0.5372, -0.0024]}], "main_tickers": ["META", "AMZN", "NVDA", "TSM", "AVGO", "MRVL", "EWY", "LITE", "RIOT", "BIDU", "BABA", "GDX", "GOOG", "ASHR", "MSFT", "NFLX", "QQQ", "RSP", "000660 KS", "XLP", "INTC", "XLF", "CSCO", "QQQE", "KHC", "000660 KP", "005930 KS", "COHR", "AKAM", "402340 KS", "NQA", "WMB", "AAPL", "SOXX", "2330 TT", "005935 KS", "AGX", "GEV", "ENR GY", "WBD", "IGV", "SMH", "KBWB", "1OH6"], "all_tickers": ["000660 KP", "000660 KS", "005930 KP", "005930 KS", "005935 KS", "1OH6", "2330 TT", "2OH6", "300502 CH", "3110 JT", "402340 KP", "402340 KS", "AAPL", "AGX", "AKAM", "AMAT", "AMD", "AMZN", "ASHR", "AVGO", "BABA", "BIDU", "COHR", "COPX", "CSCO", "ENR GY", "EWY", "GDX", "GEV", "GOOG", "IGV", "INTC", "KBWB", "KHC", "LITE", "MA", "MELI", "META", "MRVL", "MSFT", "MSXXQE7", "NFLX", "NQA", "NVDA", "QQQ", "QQQE", "RIOT", "RSP", "SMH", "SNDK", "SOXX", "TSM", "V", "WBD", "WMB", "XLF", "XLP"], "heatmap": {"META": [0.1438, 0.1361, 0.1409, 0.1347, 0.1316, 0.1733, 0.2042, 0.2305, 0.2186, 0.2222, 0.2211, 0.2211, 0.202, 0.2204, 0.2258, 0.2272, 0.1867, 0.2759, 0.4069, 0.3975, 0.354, 0.2948, 0.2802, 0.2675, 0.2675, 0.3499, 0.332, 0.3288, 0.3605, 0.3631, 0.38, 0.2492, 0.2492], "AMZN": [0.0769, 0.0753, 0.0775, 0.1281, 0.1303, 0.1803, 0.1797, 0.1765, 0.1725, 0.1736, 0.1743, 0.1743, 0.1104, 0.111, 0.1392, 0.2466, 0.2145, 0.1839, 0.1504, 0.1632, 0.149, 0.1464, 0.1459, 0.0489, 0.0489, 0.0022, 0.0052, -0.0026, -0.0136, -0.0152, 0.1033, 0.0606, 0.0606], "NVDA": [0.2275, 0.234, 0.2502, 0.1772, 0.1692, 0.1884, 0.1878, 0.1876, 0.1859, 0.2106, 0.2096, 0.2097, 0.1944, 0.1772, 0.1801, 0.179, 0.1811, 0.2822, 0.166, 0.2157, 0.2054, 0.2172, 0.2141, 0.2138, 0.2138, 0.5531, 0.5479, 0.6205, 0.6482, 0.641, 0.6586, 0.5398, 0.5398], "TSM": [0.2247, 0.2806, 0.3073, 0.3258, 0.3262, 0.3627, 0.3645, 0.3008, 0.2163, 0.4086, 0.3955, 0.3955, 0.4951, 0.5216, 0.5221, 0.5193, 0.5123, 0.5254, 0.559, 0.5842, 0.5719, 0.59, 0.6006, 0.5101, 0.5101, 0.494, 0.5219, 0.5687, 0.5733, 0.5736, 0.5918, 0.4308, 0.4308], "AVGO": [0.1021, 0.113, 0.0871, 0.0895, 0.0864, 0.0901, 0.0922, 0.0927, 0.1203, 0.1445, 0.2028, 0.2028, 0.1196, 0.1203, 0.1175, 0.0877, 0.0858, 0.1214, 0.1021, 0.1026, 0.0837, 0.0748, 0.0725, 0.1409, 0.1409, 0.2952, 0.2389, 0.2484, 0.2042, 0.2018, 0.2092, 0.2514, 0.0707], "MRVL": [-0.0314, -0.0305, -0.0267, -0.0276, -0.028, -0.0295, -0.0295, -0.0148, -0.0108, -0.0108, -0.011, -0.011, -0.0216, -0.0237, -0.0246, -0.025, -0.0241, -0.0242, -0.0252, -0.016, -0.0161, -0.0262, -0.0262, -0.0166, -0.0166, -0.0394, -0.0388, -0.039, -0.0484, -0.0485, -0.0489, -0.0504, -0.0504], "EWY": [0.1186, 0.1245, 0.1276, 0.2013, 0.1529, 0.13, 0.1542, 0.2123, 0.2164, 0.2192, 0.2622, 0.2622, 0.2026, 0.2023, 0.203, 0.2056, 0.2023, 0.2343, 0.2053, 0.2412, 0.3247, 0.1987, 0.1847, 0.1741, 0.1741, 0.1995, 0.2043, 0.2966, 0.307, 0.1628, 0.156, 0.221, 0.221], "LITE": [0.0492, 0.0651, 0.0635, 0.0703, 0.0635, 0.0646, 0.0812, 0.0832, 0.0757, 0.0736, 0.0609, 0.0609, 0.0617, 0.0552, 0.053, 0.0561, 0.0609, 0.063, 0.0586, 0.0627, 0.0628, 0.0654, 0.0718, 0.0937, 0.0937, 0.1326, 0.1376, 0.138, 0.1375, 0.1428, 0.1374, 0.136, 0.136], "RIOT": [0.0125, 0.0138, 0.0144, 0.0149, 0.0149, 0.0149, 0.0161, 0.0162, 0.0169, 0.0162, 0.0188, 0.0188, 0.0173, 0.0171, 0.0182, 0.0214, 0.023, 0.0231, 0.0219, 0.0223, 0.0227, 0.0227, 0.0217, 0.0196, 0.0196, 0.0169, 0.0181, 0.0174, 0.0184, 0.0184, 0.0186, 0.0186, 0.0186], "BIDU": [null, 0.0133, 0.0188, 0.0229, 0.022, 0.0223, 0.0237, 0.0232, 0.0234, 0.0233, 0.0233, 0.0233, 0.0237, 0.0238, 0.0237, 0.0229, 0.0231, 0.0231, 0.023, 0.0224, 0.0218, 0.0212, 0.0204, 0.0227, 0.0227, 0.0247, 0.0244, 0.0245, 0.0262, 0.0261, 0.0257, 0.0255, 0.0255], "BABA": [null, 0.0133, 0.0056, 0.022, 0.0231, 0.0226, 0.0249, 0.025, 0.0255, 0.0256, 0.0248, 0.0248, 0.0238, 0.0253, 0.0244, 0.0242, 0.0243, 0.0248, 0.0246, 0.0239, 0.0237, 0.0231, 0.0229, 0.0222, 0.0222, 0.0231, 0.0227, 0.0226, 0.0245, 0.0244, 0.0243, 0.0241, 0.0241], "GDX": [0.0222, 0.0481, 0.0497, 0.0759, 0.0992, 0.1031, 0.1066, 0.1075, 0.1199, 0.1202, 0.1204, 0.1204, 0.108, 0.1131, 0.1148, 0.0987, 0.1093, 0.1359, 0.1752, 0.1165, null, null, null, null, null, 0.1314, 0.0614, 0.0592, 0.0606, 0.0609, 0.0873, 0.0933, 0.0933], "GOOG": [null, null, null, null, null, 0.026, 0.0263, 0.0265, 0.0265, 0.0263, 0.0261, 0.0261, 0.2027, 0.2042, 0.2043, 0.1427, 0.1223, 0.1228, 0.2028, 0.2048, 0.2087, 0.2062, 0.2071, 0.1992, 0.1992, 0.0245, 0.0242, 0.024, 0.1499, 0.1505, 0.2549, 0.3513, 0.3513], "ASHR": [null, null, null, null, null, null, 0.0477, 0.0769, 0.0658, 0.0764, 0.0556, 0.0556, 0.0768, 0.0753, 0.0623, 0.0689, 0.071, 0.0622, 0.068, 0.0539, 0.0478, 0.0528, 0.0555, 0.017, 0.017, 0.0581, 0.0494, 0.0366, 0.1435, 0.0143, 0.0144, 0.0731, 0.0731], "MSFT": [0.1546, 0.1786, 0.179, 0.2391, 0.2392, 0.2654, 0.2657, 0.2633, 0.2892, 0.2861, 0.3052, 0.3052, 0.144, 0.1232, 0.1419, 0.2249, 0.1869, 0.1527, null, 0.0747, 0.0739, 0.0323, 0.0324, 0.049, 0.049, null, null, null, null, null, null, null, null], "NFLX": [-0.0289, -0.0241, -0.0251, -0.0239, -0.0224, -0.021, -0.0213, -0.0221, -0.0194, -0.0184, -0.0182, -0.0182, null, null, null, null, null, null, null, null, null, -0.0079, -0.0073, -0.0105, -0.0105, -0.014, -0.0156, -0.0157, -0.0173, -0.0177, -0.0176, -0.0123, -0.0123], "QQQ": [-0.1237, -0.4145, -0.2831, -0.0888, -0.0926, -0.076, -0.0556, null, null, -0.2866, 0.0453, null, null, null, 0.2417, null, null, -0.1005, -0.2897, -1.1606, -0.0607, -0.0061, null, -0.2046, -0.2046, -0.3907, -0.4046, 0.2747, null, -0.2918, -0.4222, null, null], "RSP": [-0.0991, -0.0993, -0.1002, -0.1524, -0.1538, -0.1545, -0.1547, -0.1094, -0.1101, -0.1106, -0.0883, -0.0883, null, null, null, -0.1081, -0.1079, -0.1076, -0.1894, -0.3948, null, null, null, null, null, null, null, null, null, null, -0.4026, -0.6477, -0.6477], "000660 KS": [0.0301, 0.0312, 0.0322, 0.034, 0.0349, 0.034, 0.0338, 0.0333, 0.0334, 0.0342, 0.0342, 0.0342, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.0385, 0.038, 0.038, 0.038, 0.038, 0.0404, 0.041, 0.041], "XLP": [null, null, null, null, null, null, null, null, null, -0.1005, -0.1001, -0.1001, -0.0946, -0.0944, -0.0946, -0.095, -0.0955, -0.0945, -0.0944, -0.0956, -0.097, -0.0986, -0.0996, -0.0998, -0.0998, -0.0972, -0.032, null, null, null, -0.1042, null, null], "INTC": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.0133, 0.0135, 0.0134, 0.031, 0.0236, 0.0226, 0.0269, 0.0224, 0.0222, 0.0247, 0.0247, 0.0269, 0.0275, 0.0281, 0.0265, 0.025, 0.0231, 0.0316, 0.0316], "XLF": [null, null, null, null, null, null, null, null, null, 0.0996, 0.0997, 0.0997, 0.102, 0.1026, 0.1016, 0.102, 0.1012, 0.1012, 0.102, 0.102, 0.1031, 0.0525, 0.0526, 0.0523, 0.0523, 0.0481, 0.0004, null, null, null, null, null, null], "CSCO": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.0581, 0.0999, 0.1002, 0.0998, 0.0992, 0.1068, 0.1551, 0.1564, 0.1537, 0.1537, 0.0817, 0.0994, 0.1113, 0.1215, 0.1201, 0.1197, 0.019, 0.019], "QQQE": [-0.3036, -0.3023, -0.3054, -0.3097, -0.3081, -0.3107, -0.2517, -0.2134, -0.0463, -0.0463, -0.0462, -0.0462, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, -1.314, -1.2978, -1.2978], "KHC": [null, null, null, null, null, null, null, null, null, null, null, null, -0.0093, -0.0094, -0.0095, -0.0098, -0.0114, -0.0111, -0.0111, -0.0113, -0.0113, -0.0115, -0.0117, -0.0137, -0.0137, -0.0099, -0.0103, null, null, null, null, null, null], "000660 KP": [null, null, null, null, null, null, null, null, null, null, null, null, 0.0506, 0.0515, 0.0523, 0.0511, 0.0557, 0.0534, 0.0548, 0.0366, 0.0332, 0.0364, 0.0359, 0.0375, 0.0375, null, null, null, null, null, null, null, null], "005930 KS": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.0143, 0.0269, null, 0.0298, 0.0325, 0.0325, 0.0351, 0.0354, 0.0354, 0.0354, 0.0365, 0.0369, 0.0377, 0.0484], "COHR": [null, null, null, 0.0241, 0.0221, 0.0246, 0.0256, 0.026, 0.0255, 0.0175, 0.017, 0.017, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.0248, null, null, null, null, 0.0582, 0.0582], "AKAM": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.05, 0.0494, 0.0259, 0.0294, 0.0311, 0.0391, 0.0393, null, null, 0.0394, 0.0587, 0.0883, 0.0999, 0.0992, null, null, null], "402340 KS": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.0042, null, 0.0147, 0.0182, 0.0182, 0.023, 0.0226, 0.0226, 0.0226, 0.0227, 0.0231, 0.033, 0.033], "NQA": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, -0.6362, -1.6921, -2.6748, -2.4583, -0.2949, -1.2762, -1.2754, -0.6917, -2.1686, -0.5938, 0.687, 0.6867], "WMB": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.0743, 0.0735, 0.0886, 0.0886, 0.1502, 0.1526, 0.1519, 0.1523, 0.1517, 0.1534, 0.1541, 0.1541], "AAPL": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.1066, 0.1369, 0.1156, null, 0.1014, 0.1439, 0.2009, 0.1951, 0.0923, 0.0923, null, null, null, null, null, null, null, null], "SOXX": [-0.0652, -0.0672, -0.0439, -0.0199, -0.0195, -0.0201, -0.0202, -0.0204, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "2330 TT": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.0433, 0.0432, 0.0432, 0.0432, 0.0432, 0.0432, 0.043, 0.043], "005935 KS": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.0148, 0.0154, 0.0154, 0.0154, 0.016, 0.0163, 0.0239, 0.0164], "AGX": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.0442, 0.0536, 0.068, 0.0692, 0.0719, 0.1003, 0.1009, 0.1009], "GEV": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.0312, 0.0307, 0.0313, 0.0313, 0.0319, 0.0319, 0.0318, 0.0318], "ENR GY": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.0152, 0.0152, 0.0151, 0.0156, 0.0153, 0.0154, 0.031, 0.0309], "WBD": [0.0403, 0.0398, 0.0399, 0.0399, 0.0398, 0.0404, 0.0397, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "IGV": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, -0.0171, -0.0976, -0.028, -0.0713, -0.0691, -0.0382, -0.0382, null, null, null, null, null, null, null, null], "SMH": [-0.0292, -0.0142, -0.009, -0.0024, -0.0029, -0.0017, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], "KBWB": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0.0553, 0.056, 0.0552, 0.0552, 0.0507, 0.0509, null, null, null, null, null, null], "1OH6": [null, null, null, null, null, null, null, null, null, null, null, null, -0.0714, null, null, null, null, null, null, null, -0.2149, null, 0.1044, 0.5372, -0.0024, null, null, null, null, null, null, null, null]}, "latest_date": "2026-02-24", "latest_weights": {"000660 KS": 0.041, "005930 KS": 0.0484, "005935 KS": 0.0164, "2330 TT": 0.043, "402340 KS": 0.033, "AGX": 0.1009, "AMZN": 0.0606, "ASHR": 0.0731, "AVGO": 0.0707, "BABA": 0.0241, "BIDU": 0.0255, "COHR": 0.0582, "CSCO": 0.019, "ENR GY": 0.0309, "EWY": 0.221, "GDX": 0.0933, "GEV": 0.0318, "GOOG": 0.3513, "INTC": 0.0316, "LITE": 0.136, "META": 0.2492, "MRVL": -0.0504, "MSXXQE7": -0.2, "NFLX": -0.0123, "NQA": 0.6867, "NVDA": 0.5398, "QQQE": -1.2978, "RIOT": 0.0186, "RSP": -0.6477, "TSM": 0.4308, "WMB": 0.1541}, "price_changes": {"META": -2.4, "AMZN": -8.18, "NVDA": -4.14, "TSM": 15.14, "AVGO": -1.81, "MRVL": 7.39, "EWY": 39.7, "LITE": 63.96, "RIOT": 9.38, "BIDU": -1.86, "BABA": -12.87, "GDX": 12.21, "GOOG": -2.77, "ASHR": 1.12, "MSFT": -15.86, "NFLX": 4.08, "QQQ": -2.59, "RSP": 2.51, "000660 KS": 39.82, "XLP": 9.89, "INTC": 25.91, "XLF": -9.51, "CSCO": -1.97, "QQQE": -0.87, "KHC": 2.98, "000660 KP": 39.82, "005930 KS": 49.01, "COHR": 31.61, "AKAM": 15.48, "402340 KS": 52.17, "WMB": 22.95, "AAPL": -4.86, "SOXX": 9.91, "2330 TT": 19.87, "005935 KS": 38.17, "AGX": 43.62, "GEV": 25.21, "ENR GY": -8.85, "WBD": -3.65, "IGV": -18.86, "SMH": 7.79, "KBWB": -8.66}};
+const DATES = D.dates;
+const TD = D.ticker_data;
+const OV = D.overview_traces;
+const MT = D.main_tickers;
+const AT = D.all_tickers;
+const HM = D.heatmap;
+const LATEST = D.latest_date;
+const LW = D.latest_weights;
+const PC = D.price_changes;
+
+let chartMode = 'dual';
+
+// ── Theme ──────────────────────────────────────────────
+const LY = {
+  paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
+  font:{color:'#8b949e', size:11, family:'-apple-system,"Segoe UI",system-ui,sans-serif'},
+  xaxis:{gridcolor:'#21262d',linecolor:'#30363d',tickcolor:'#30363d',zerolinecolor:'#30363d'},
+  yaxis:{gridcolor:'#21262d',linecolor:'#30363d',tickcolor:'#30363d',zerolinecolor:'#30363d'},
+  legend:{bgcolor:'rgba(0,0,0,0)',bordercolor:'rgba(0,0,0,0)'},
+  hoverlabel:{bgcolor:'#1c2128',bordercolor:'#30363d',font:{color:'#e6edf3',size:12}},
+  margin:{t:8,r:16,b:48,l:58},
+};
+const CFG = {responsive:true, displayModeBar:false};
+
+const PAL = ['#58a6ff','#3fb950','#e3b341','#f85149','#bc8cff',
+             '#39d353','#ff7b72','#79c0ff','#ffa657','#d2a8ff',
+             '#56d364','#ff6e5c','#a5d6ff','#ffb86c','#cae8ff',
+             '#7ee787','#ffa28b','#a8d8ea','#ffcf7d','#b3d9ff'];
+
+// ── Helpers ────────────────────────────────────────────
+function fmtPct(v, decimals=3) {
+  if(v===null||v===undefined) return '—';
+  const s = v >= 0 ? '+' : '';
+  return s + v.toFixed(decimals) + '%';
+}
+function fmtPrice(v, ticker='') {
+  if(!v) return '—';
+  // Non-USD markets
+  const KRX = ['000660 KS','000660 KP','005930 KS','005930 KP','005935 KS','402340 KS','402340 KP'];
+  const TWD = ['2330 TT'];
+  const JPY = ['3110 JT'];
+  const CNY = ['300502 CH'];
+  if(KRX.includes(ticker)) return '₩' + v.toLocaleString('en',{maximumFractionDigits:0});
+  if(TWD.includes(ticker)) return 'NT$' + v.toFixed(1);
+  if(JPY.includes(ticker)) return '¥' + v.toLocaleString('en',{maximumFractionDigits:0});
+  if(CNY.includes(ticker)) return '¥' + v.toFixed(2);
+  return '$' + v.toFixed(2);
+}
+function pctClass(v) { return v > 0 ? 'up' : v < 0 ? 'dn' : 'neu'; }
+
+// rangebreaks for weekends
+function rbk() {
+  return [{bounds:['sat','mon']}];
+}
+
+// ── Header ─────────────────────────────────────────────
+function initHeader() {
+  document.getElementById('hdr-sub').textContent =
+    `${DATES[0]} → ${LATEST}  ·  ${DATES.length} trading days`;
+  const badges = document.getElementById('hdr-badges');
+  const longs = Object.values(LW).filter(v=>v>0).length;
+  const shorts = Object.values(LW).filter(v=>v<0).length;
+  badges.innerHTML = `
+    <span class="header-badge" style="color:#3fb950">${longs} Longs</span>
+    <span class="header-badge" style="color:#f85149">${shorts} Shorts</span>
+    <span class="header-badge">${AT.length} unique tickers</span>
+  `;
+}
+
+// ── Show tab ────────────────────────────────────────────
+function showTab(name) {
+  const tabNames = ['overview','snapshot','ticker','heatmap','priceanalytics','risk','valuation','screen'];
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active', tabNames[i]===name);
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='heatmap') renderHeatmap();
+  if(name==='priceanalytics') renderPriceAnalytics();
+  if(name==='risk') renderRisk();
+  if(name==='valuation') renderValuation();
+  if(name==='screen') renderScreen();
+}
+
+// ══════════════════════════════════════════════════════
+// OVERVIEW
+// ══════════════════════════════════════════════════════
+function renderOverview() {
+  // KPIs
+  const lastW = Object.values(LW);
+  const gross = lastW.reduce((s,v)=>s+Math.abs(v),0);
+  const net   = lastW.reduce((s,v)=>s+v,0);
+  const longs = lastW.filter(v=>v>0).length;
+  const shorts = lastW.filter(v=>v<0).length;
+  document.getElementById('kpi-bar').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Latest date</div>
+      <div class="stat-value neu" style="font-size:1.15rem">${LATEST}</div>
+      <div class="stat-sub">${DATES.length} trading days total</div></div>
+    <div class="stat-card"><div class="stat-label">Gross exposure</div>
+      <div class="stat-value neu">${gross.toFixed(2)}%</div>
+      <div class="stat-sub">Σ |weights|</div></div>
+    <div class="stat-card"><div class="stat-label">Net exposure</div>
+      <div class="stat-value ${pctClass(net)}">${fmtPct(net,2)}</div>
+      <div class="stat-sub">Long − Short</div></div>
+    <div class="stat-card"><div class="stat-label">Positions</div>
+      <div class="stat-value" style="color:#e3b341">${longs}L / ${shorts}S</div>
+      <div class="stat-sub">as of ${LATEST}</div></div>
+  `;
+
+  // Stacked bar
+  const stackTraces = OV.slice(0,28).map((t,i)=>({
+    x: t.dates, y: t.weights_abs,
+    name: t.name, type: 'bar',
+    marker:{color: PAL[i%PAL.length]},
+    hovertemplate: `<b>${t.name}</b><br>%{x}<br>Gross: %{y:.3f}%<extra></extra>`
+  }));
+  Plotly.newPlot('ch-stacked', stackTraces, {
+    ...LY, barmode:'stack',
+    xaxis:{...LY.xaxis, type:'date', rangebreaks:rbk()},
+    yaxis:{...LY.yaxis, title:'Gross Weight (%)'},
+    legend:{...LY.legend, orientation:'h', y:-0.18, x:0},
+    margin:{t:8,r:16,b:100,l:58}
+  }, CFG);
+
+  // Net exposure lines
+  const netTraces = OV.slice(0,20).map((t,i)=>({
+    x: t.dates, y: t.weights_signed,
+    name: t.name, type:'scatter', mode:'lines',
+    line:{width:1.5, color:PAL[i%PAL.length]},
+    hovertemplate:`<b>${t.name}</b><br>%{x}<br>Net: %{y:.3f}%<extra></extra>`
+  }));
+  netTraces.push({
+    x: DATES,
+    y: DATES.map(d=>{
+      const ws = Object.values(D.heatmap).map(row=>row[DATES.indexOf(d)]||0);
+      return ws.reduce((a,b)=>a+b,0);
+    }),
+    name:'TOTAL NET', type:'scatter', mode:'lines+markers',
+    line:{width:2.5, color:'#e3b341', dash:'dot'},
+    marker:{size:4},
+    hovertemplate:`<b>Total Net</b><br>%{x}<br>%{y:.3f}%<extra></extra>`
+  });
+  Plotly.newPlot('ch-net', netTraces, {
+    ...LY,
+    xaxis:{...LY.xaxis, type:'date', rangebreaks:rbk()},
+    yaxis:{...LY.yaxis, title:'Net Weight (%)', zeroline:true, zerolinewidth:1},
+    legend:{...LY.legend, orientation:'h', y:-0.22, x:0},
+    margin:{t:8,r:16,b:110,l:58}
+  }, CFG);
+
+  // Position count
+  const longCounts = DATES.map(d=>Object.values(D.heatmap).filter(r=>(r[DATES.indexOf(d)]||0)>0).length);
+  const shortCounts = DATES.map(d=>Object.values(D.heatmap).filter(r=>(r[DATES.indexOf(d)]||0)<0).length);
+  Plotly.newPlot('ch-poscount',[
+    {x:DATES,y:longCounts,name:'Longs',type:'bar',marker:{color:'rgba(63,185,80,.7)'},
+     hovertemplate:'%{x}<br>Longs: %{y}<extra></extra>'},
+    {x:DATES,y:shortCounts.map(v=>-v),name:'Shorts',type:'bar',marker:{color:'rgba(248,81,73,.7)'},
+     hovertemplate:'%{x}<br>Shorts: %{y}<extra></extra>'},
+  ],{
+    ...LY, barmode:'relative',
+    xaxis:{...LY.xaxis, type:'date', rangebreaks:rbk()},
+    yaxis:{...LY.yaxis, title:'# Positions', zeroline:true},
+    legend:{...LY.legend, orientation:'h', y:-0.2, x:0},
+    margin:{t:8,r:16,b:80,l:48}
+  }, CFG);
+}
+
+// ══════════════════════════════════════════════════════
+// SNAPSHOT
+// ══════════════════════════════════════════════════════
+function renderSnapshot() {
+  document.getElementById('snap-date-lbl').textContent = LATEST;
+
+  const entries = Object.entries(LW).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
+  const longs  = entries.filter(([,v])=>v>0);
+  const shorts = entries.filter(([,v])=>v<0);
+  const gross  = entries.reduce((s,[,v])=>s+Math.abs(v),0);
+  const net    = entries.reduce((s,[,v])=>s+v,0);
+
+  document.getElementById('snap-kpis').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total positions</div>
+      <div class="stat-value neu">${entries.length}</div>
+      <div class="stat-sub">${longs.length} long · ${shorts.length} short</div></div>
+    <div class="stat-card"><div class="stat-label">Gross exposure</div>
+      <div class="stat-value neu">${gross.toFixed(2)}%</div>
+      <div class="stat-sub">Sum of |weights|</div></div>
+    <div class="stat-card"><div class="stat-label">Net exposure</div>
+      <div class="stat-value ${pctClass(net)}">${fmtPct(net,2)}</div>
+      <div class="stat-sub">Long − Short</div></div>
+    <div class="stat-card"><div class="stat-label">Largest position</div>
+      <div class="stat-value" style="color:#e3b341">${entries[0]?entries[0][0]:'—'}</div>
+      <div class="stat-sub">${entries[0]?fmtPct(entries[0][1],3):''}</div></div>
+  `;
+
+  // Bubble chart: x=price return, y=weight, size=|weight|
+  const bx=[], by=[], bsz=[], bclr=[], btxt=[], bside=[];
+  entries.forEach(([t,w])=>{
+    const pr = PC[t] !== undefined ? PC[t] : null;
+    bx.push(pr);
+    by.push(w);
+    bsz.push(Math.abs(w)*1800+8);
+    bclr.push(w>0?'rgba(63,185,80,.75)':'rgba(248,81,73,.75)');
+    btxt.push(t);
+    bside.push(w>0?'Long':'Short');
+  });
+  Plotly.newPlot('ch-bubble',[{
+    x:bx, y:by.map(v=>v), text:btxt, mode:'markers+text',
+    textposition:'top center', textfont:{size:9,color:'#8b949e'},
+    marker:{size:bsz, color:bclr, sizemode:'area', line:{width:0}},
+    customdata: bside.map((s,i)=>[s, by[i].toFixed(3)]),
+    hovertemplate:'<b>%{text}</b><br>Side: %{customdata[0]}<br>Weight: %{customdata[1]}%<br>Price Δ: %{x:.1f}%<extra></extra>'
+  }],{
+    ...LY,
+    xaxis:{...LY.xaxis, title:'Price Return (period, %)', zeroline:true},
+    yaxis:{...LY.yaxis, title:'Weight (%)', zeroline:true},
+    showlegend:false, margin:{t:8,r:16,b:52,l:60}
+  },CFG);
+
+  // Horizontal bar sorted
+  const sorted = [...entries].sort((a,b)=>b[1]-a[1]);
+  Plotly.newPlot('ch-snap-bar',[{
+    y: sorted.map(([t])=>t),
+    x: sorted.map(([,v])=>v),
+    type:'bar', orientation:'h',
+    marker:{color: sorted.map(([,v])=>v>0?'rgba(63,185,80,.75)':'rgba(248,81,73,.75)')},
+    hovertemplate:'<b>%{y}</b><br>Weight: %{x:.3f}%<extra></extra>'
+  }],{
+    ...LY,
+    xaxis:{...LY.xaxis, title:'Weight (%)', zeroline:true},
+    yaxis:{...LY.yaxis, autorange:'reversed', tickfont:{size:10}},
+    margin:{t:8,r:16,b:48,l:80}
+  },CFG);
+
+  // Table
+  const tbody = document.getElementById('snap-tbody');
+  const maxAbs = Math.max(...entries.map(([,v])=>Math.abs(v)));
+  tbody.innerHTML = entries.map(([t,w],i)=>{
+    const pr = PC[t];
+    const td = TD[t];
+    const latestPrice = td ? td.prices[td.prices.length-1] : null;
+    const barW = (Math.abs(w)/maxAbs*100).toFixed(1);
+    const barColor = w>0?'var(--green)':'var(--red)';
+    const prStr = pr !== undefined
+      ? `<span class="${pctClass(pr)}">${fmtPct(pr,1)}</span>` : '—';
+    return `<tr>
+      <td style="color:var(--text3)">${i+1}</td>
+      <td class="ticker-cell" style="cursor:pointer" onclick="goTicker('${t}')">${t}</td>
+      <td><span class="badge ${w>0?'badge-long':'badge-short'}">${w>0?'LONG':'SHORT'}</span></td>
+      <td class="${pctClass(w)}" style="font-weight:600">${fmtPct(w,3)}</td>
+      <td class="bar-cell"><div class="bar-wrap"><div class="bar-fill" style="width:${barW}%;background:${barColor}"></div></div></td>
+      <td style="color:var(--text2)">${latestPrice?fmtPrice(latestPrice,t):'—'}</td>
+      <td>${prStr}</td>
+    </tr>`;
+  }).join('');
+}
+
+function goTicker(t) {
+  showTab('ticker');
+  document.getElementById('ticker-sel').value = t;
+  renderTicker();
+}
+
+// ══════════════════════════════════════════════════════
+// TICKER DETAIL
+// ══════════════════════════════════════════════════════
+function setChartMode(mode, el) {
+  chartMode = mode;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderTicker();
+}
+
+function populateTickers() {
+  const sel = document.getElementById('ticker-sel');
+  MT.forEach(t=>{
+    const o = document.createElement('option');
+    o.value = t; o.textContent = `${t}  (${(TD[t]?.days_active||0)}d)`;
+    sel.appendChild(o);
+  });
+}
+
+function renderTicker() {
+  const t = document.getElementById('ticker-sel').value;
+  const d = TD[t]; if(!d||!d.dates.length) return;
+
+  document.getElementById('ticker-chart-title').textContent =
+    `${t} — ${chartMode==='dual'?'Weight & Price':chartMode==='weight'?'Weight (%)':'Price'}`;
+
+  const hasPrice = d.prices.some(p=>p!==null);
+  const w = d.weights, p = d.prices, dates = d.dates;
+  const avgW = w.reduce((a,b)=>a+b,0)/w.length;
+  const latestW = w[w.length-1];
+  const latestP = p[p.length-1];
+  const pr = PC[t];
+  const firstP = p.find(x=>x!==null);
+  const lastP = [...p].reverse().find(x=>x!==null);
+
+  const validPrices = p.filter(x => x !== null);
+  const periodHigh = validPrices.length ? Math.max(...validPrices) : null;
+  const periodLow = validPrices.length ? Math.min(...validPrices) : null;
+  const drawdown = periodHigh && latestP ? ((latestP - periodHigh) / periodHigh * 100) : null;
+  const upsideFromLow = periodLow && latestP ? ((latestP - periodLow) / periodLow * 100) : null;
+  const dailyRets = [];
+  for (let i = 1; i < validPrices.length; i++) {
+    dailyRets.push((validPrices[i] - validPrices[i-1]) / validPrices[i-1]);
+  }
+  const avgDR = dailyRets.length ? dailyRets.reduce((a,b)=>a+b,0)/dailyRets.length : 0;
+  const volAnn = dailyRets.length > 1 ? Math.sqrt(dailyRets.reduce((s,r)=>s+(r-avgDR)**2,0)/dailyRets.length)*Math.sqrt(252)*100 : 0;
+
+  const highPct = periodHigh && periodLow && periodHigh !== periodLow && latestP
+    ? ((latestP - periodLow) / (periodHigh - periodLow) * 100).toFixed(0) : null;
+
+  document.getElementById('ticker-mini-stats').innerHTML = `
+    <div class="mini-stat"><div class="label">Current weight</div>
+      <div class="val ${pctClass(latestW)}">${fmtPct(latestW,3)}</div></div>
+    <div class="mini-stat"><div class="label">Avg weight</div>
+      <div class="val neu">${fmtPct(avgW,3)}</div></div>
+    <div class="mini-stat"><div class="label">Days active</div>
+      <div class="val" style="color:var(--orange)">${d.days_active} / ${DATES.length}</div></div>
+    <div class="mini-stat"><div class="label">Latest price</div>
+      <div class="val" style="color:var(--text)">${latestP?fmtPrice(latestP,t):'—'}</div></div>
+    ${pr!==undefined?`<div class="mini-stat"><div class="label">Price return</div>
+      <div class="val ${pctClass(pr)}">${fmtPct(pr,1)}</div></div>`:''}
+    ${periodHigh?`<div class="mini-stat"><div class="label">Period high</div>
+      <div class="val up">${fmtPrice(periodHigh,t)}</div></div>`:''}
+    ${periodLow?`<div class="mini-stat"><div class="label">Period low</div>
+      <div class="val dn">${fmtPrice(periodLow,t)}</div></div>`:''}
+    ${drawdown!==null?`<div class="mini-stat"><div class="label">From high</div>
+      <div class="val ${drawdown===0?'up':'dn'}">${fmtPct(drawdown,1)}</div>
+      ${highPct!==null?`<div class="gauge-bar"><div class="gauge-marker" style="left:${highPct}%"></div></div>
+      <div class="gauge-labels"><span>Low</span><span>High</span></div>`:''}</div>`:''}
+    ${volAnn>0?`<div class="mini-stat"><div class="label">Volatility (ann.)</div>
+      <div class="val" style="color:var(--purple)">${volAnn.toFixed(1)}%</div></div>`:''}
+    <div class="mini-stat"><div class="label">Side</div>
+      <div class="val ${latestW>0?'up':'dn'}">${latestW>0?'LONG':'SHORT'}</div></div>
+  `;
+
+  const traces = [];
+  const showWeight = chartMode !== 'price';
+  const showPrice  = chartMode !== 'weight';
+
+  if(showWeight) {
+    traces.push({
+      x:dates, y:w, name:'Weight (%)',
+      type:'scatter', mode:'lines+markers',
+      line:{color:'#58a6ff',width:2},
+      marker:{size:5},
+      fill:'tozeroy', fillcolor:'rgba(88,166,255,.07)',
+      yaxis:'y',
+      hovertemplate:'<b>'+t+'</b><br>%{x}<br>Weight: %{y:.4f}%<extra></extra>'
+    });
+  }
+  if(showPrice && hasPrice) {
+    traces.push({
+      x:dates, y:p, name:'Price',
+      type:'scatter', mode:'lines',
+      line:{color:'#e3b341',width:2},
+      yaxis: chartMode==='dual'?'y2':'y',
+      hovertemplate:'<b>Price</b>: '+((t.includes(' KS')||t.includes(' KP'))?'₩':'$')+'%{y:,.2f}<br>%{x}<extra></extra>'
+    });
+  }
+
+  const layout = {
+    ...LY,
+    xaxis:{...LY.xaxis, type:'date', rangebreaks:rbk()},
+    yaxis:{...LY.yaxis, title: showWeight?'Weight (%)':'Price',
+           zeroline:true, zerolinewidth:1, zerolinecolor:'#30363d'},
+    ...(showPrice && hasPrice && chartMode==='dual' ? {
+      yaxis2:{overlaying:'y',side:'right',title:'Price',
+        gridcolor:'rgba(0,0,0,0)', linecolor:'#30363d',
+        tickcolor:'#30363d', tickfont:{color:'#e3b341'},
+        titlefont:{color:'#e3b341'}}
+    }:{}),
+    legend:{...LY.legend, orientation:'h', x:0, y:1.06},
+    margin:{t:30,r:showPrice&&hasPrice&&chartMode==='dual'?70:16,b:50,l:60}
+  };
+
+  Plotly.newPlot('ch-detail', traces, layout, CFG);
+
+  // Histogram
+  Plotly.newPlot('ch-hist',[{
+    x:w, type:'histogram', nbinsx:14,
+    marker:{color:'rgba(88,166,255,.7)', line:{color:'rgba(88,166,255,.3)',width:1}},
+    hovertemplate:'Weight: %{x:.4f}%<br>Days: %{y}<extra></extra>'
+  }],{
+    ...LY,
+    xaxis:{...LY.xaxis, title:'Weight (%)'},
+    yaxis:{...LY.yaxis, title:'# Days'},
+    margin:{t:8,r:16,b:48,l:46}
+  },CFG);
+
+  // Scatter
+  if(hasPrice) {
+    const n = dates.length;
+    const colors = dates.map((_,i)=>i/(n-1||1));
+    Plotly.newPlot('ch-scatter',[{
+      x:w, y:p, mode:'markers+text',
+      text: dates.map(d=>d.slice(5)), textposition:'top right',
+      textfont:{size:8, color:'rgba(139,148,158,.6)'},
+      marker:{size:8, color:colors, colorscale:[[0,'#1c2128'],[0.4,'#1d4ed8'],[1,'#60a5fa']],
+              showscale:true, colorbar:{title:{text:'Day',side:'right'},
+              thickness:10,len:0.8,tickfont:{color:'#8b949e'},
+              titlefont:{color:'#8b949e'}}},
+      hovertemplate:'<b>%{text}</b><br>Weight: %{x:.4f}%<br>Price: $%{y:.2f}<extra></extra>'
+    }],{
+      ...LY,
+      xaxis:{...LY.xaxis, title:'Weight (%)'},
+      yaxis:{...LY.yaxis, title:'Price'},
+      margin:{t:8,r:70,b:48,l:60}, showlegend:false
+    },CFG);
+  } else {
+    document.getElementById('ch-scatter').innerHTML =
+      '<div style="color:var(--text3);text-align:center;padding:80px 0">No price data available</div>';
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// HEATMAP
+// ══════════════════════════════════════════════════════
+function renderHeatmap() {
+  const sortMode  = document.getElementById('hm-sort').value;
+  const showMode  = document.getElementById('hm-mode').value;
+  const search    = document.getElementById('hm-search').value.trim().toUpperCase();
+
+  let tickers = MT.filter(t => !search || t.includes(search));
+
+  const avgAbs = t => {
+    const vals = HM[t].filter(v=>v!==null);
+    return vals.length ? vals.reduce((s,v)=>s+Math.abs(v),0)/vals.length : 0;
+  };
+  const maxAbs = t => Math.max(...(HM[t].filter(v=>v!==null).map(Math.abs).concat([0])));
+  const days   = t => HM[t].filter(v=>v!==null).length;
+
+  if(sortMode==='avg')  tickers.sort((a,b)=>avgAbs(b)-avgAbs(a));
+  else if(sortMode==='max')  tickers.sort((a,b)=>maxAbs(b)-maxAbs(a));
+  else if(sortMode==='days') tickers.sort((a,b)=>days(b)-days(a));
+  else tickers.sort();
+
+  const z = tickers.map(t =>
+    DATES.map((_,di) => {
+      const v = HM[t][di];
+      if(v === null) return null;
+      return showMode === 'abs' ? Math.abs(v) : v;
+    })
+  );
+
+  const colorscale = showMode === 'signed'
+    ? [[0,'#f85149'],[0.45,'#21262d'],[0.5,'#161b22'],[0.55,'#21262d'],[1,'#3fb950']]
+    : [[0,'#161b22'],[0.3,'#1d4ed8'],[0.7,'#3b82f6'],[1,'#58a6ff']];
+
+  Plotly.newPlot('ch-heatmap',[{
+    type:'heatmap', z, x:DATES, y:tickers,
+    colorscale, zmid: showMode==='signed'?0:undefined,
+    hoverongaps:false, xgap:1, ygap:1,
+    hovertemplate:'<b>%{y}</b><br>%{x}<br>%{z:.4f}%<extra></extra>',
+    colorbar:{
+      title:{text:'Weight %',side:'right'},
+      thickness:12, len:0.9,
+      tickfont:{color:'#8b949e'}, titlefont:{color:'#8b949e'}
+    }
+  }],{
+    ...LY,
+    xaxis:{...LY.xaxis, type:'date', rangebreaks:rbk(), tickangle:-45},
+    yaxis:{...LY.yaxis, autorange:'reversed', tickfont:{size:10}},
+    margin:{t:8,r:80,b:90,l:100}
+  },CFG);
+
+  // Click to jump to ticker detail
+  document.getElementById('ch-heatmap').on('plotly_click', data => {
+    const t = data.points[0].y;
+    showTab('ticker');
+    document.getElementById('ticker-sel').value = t;
+    renderTicker();
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// PRICE ANALYTICS
+// ══════════════════════════════════════════════════════
+
+let paData = [];
+let paSortKey = 'return';
+let paSortAsc = false;
+let paRendered = false;
+
+function computePriceAnalytics() {
+  paData = [];
+  AT.forEach(t => {
+    const td = TD[t];
+    if (!td || !td.prices || td.prices.length === 0) return;
+    const prices = td.prices.filter(p => p !== null);
+    if (prices.length < 2) return;
+
+    const currentPrice = prices[prices.length - 1];
+    const periodHigh = Math.max(...prices);
+    const periodLow = Math.min(...prices);
+    const firstPrice = prices[0];
+    const totalReturn = (currentPrice - firstPrice) / firstPrice * 100;
+    const drawdownFromHigh = (currentPrice - periodHigh) / periodHigh * 100;
+    const upsideFromLow = (currentPrice - periodLow) / periodLow * 100;
+
+    const rets = [];
+    for (let i = 1; i < prices.length; i++) {
+      if (prices[i] && prices[i-1]) rets.push((prices[i] - prices[i-1]) / prices[i-1]);
+    }
+    const avgR = rets.length ? rets.reduce((a,b) => a+b, 0) / rets.length : 0;
+    const variance = rets.length ? rets.reduce((s,r) => s + (r-avgR)**2, 0) / rets.length : 0;
+    const annualVol = Math.sqrt(variance) * Math.sqrt(252) * 100;
+
+    paData.push({
+      ticker: t, currentPrice, periodHigh, periodLow,
+      totalReturn, drawdownFromHigh, upsideFromLow,
+      annualVol, latestWeight: LW[t] || 0, daysActive: td.days_active
+    });
+  });
+}
+
+function renderPriceAnalytics() {
+  if (paRendered) return;
+  paRendered = true;
+  if (!paData.length) computePriceAnalytics();
+
+  const avgReturn = paData.reduce((s,d) => s + d.totalReturn, 0) / paData.length;
+  const best = paData.reduce((b, d) => d.totalReturn > b.totalReturn ? d : b, paData[0]);
+  const worst = paData.reduce((w, d) => d.totalReturn < w.totalReturn ? d : w, paData[0]);
+  const avgDD = paData.reduce((s,d) => s + d.drawdownFromHigh, 0) / paData.length;
+  const avgVol = paData.reduce((s,d) => s + d.annualVol, 0) / paData.length;
+
+  document.getElementById('pa-kpis').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Avg. Period Return</div>
+      <div class="stat-value ${pctClass(avgReturn)}">${fmtPct(avgReturn,1)}</div>
+      <div class="stat-sub">${paData.length} tickers with price data</div></div>
+    <div class="stat-card"><div class="stat-label">Best Performer</div>
+      <div class="stat-value up" style="font-size:1.1rem">${best.ticker}</div>
+      <div class="stat-sub">${fmtPct(best.totalReturn,1)} return</div></div>
+    <div class="stat-card"><div class="stat-label">Worst Performer</div>
+      <div class="stat-value dn" style="font-size:1.1rem">${worst.ticker}</div>
+      <div class="stat-sub">${fmtPct(worst.totalReturn,1)} return</div></div>
+    <div class="stat-card"><div class="stat-label">Avg. Drawdown from High</div>
+      <div class="stat-value dn">${fmtPct(avgDD,1)}</div>
+      <div class="stat-sub">Avg. vol: ${avgVol.toFixed(0)}% ann.</div></div>
+  `;
+
+  const sortedRet = [...paData].sort((a,b) => a.totalReturn - b.totalReturn);
+  Plotly.newPlot('ch-return-rank', [{
+    y: sortedRet.map(d => d.ticker),
+    x: sortedRet.map(d => d.totalReturn),
+    type: 'bar', orientation: 'h',
+    marker: { color: sortedRet.map(d => d.totalReturn >= 0 ? 'rgba(63,185,80,.75)' : 'rgba(248,81,73,.75)') },
+    hovertemplate: '<b>%{y}</b><br>Return: %{x:.1f}%<extra></extra>'
+  }], {
+    ...LY,
+    xaxis: {...LY.xaxis, title: 'Total Return (%)', zeroline: true},
+    yaxis: {...LY.yaxis, tickfont: {size: 10}},
+    margin: {t: 8, r: 16, b: 48, l: 90}
+  }, CFG);
+
+  const sortedDD = [...paData].sort((a,b) => a.drawdownFromHigh - b.drawdownFromHigh);
+  Plotly.newPlot('ch-drawdown', [{
+    y: sortedDD.map(d => d.ticker),
+    x: sortedDD.map(d => d.drawdownFromHigh),
+    type: 'bar', orientation: 'h',
+    marker: {
+      color: sortedDD.map(d => {
+        const dd = Math.abs(d.drawdownFromHigh);
+        if (dd === 0) return 'rgba(63,185,80,.75)';
+        if (dd < 5) return 'rgba(227,179,65,.75)';
+        if (dd < 15) return 'rgba(255,122,114,.75)';
+        return 'rgba(248,81,73,.9)';
+      })
+    },
+    hovertemplate: '<b>%{y}</b><br>From High: %{x:.1f}%<extra></extra>'
+  }], {
+    ...LY,
+    xaxis: {...LY.xaxis, title: 'Distance from Period High (%)', zeroline: true},
+    yaxis: {...LY.yaxis, tickfont: {size: 10}},
+    margin: {t: 8, r: 16, b: 48, l: 90}
+  }, CFG);
+
+  const normSel = document.getElementById('norm-ticker-sel');
+  if (normSel.options.length === 0) {
+    const withPrices = AT.filter(t => {
+      const td = TD[t];
+      return td && td.prices && td.prices.filter(p=>p!==null).length >= 2;
+    });
+    const defaults = ['NVDA','TSM','META','AMZN','AVGO'];
+    withPrices.forEach(t => {
+      const o = document.createElement('option');
+      o.value = t; o.textContent = t;
+      if (defaults.includes(t)) o.selected = true;
+      normSel.appendChild(o);
+    });
+  }
+  renderNormalizedPrices();
+  renderPATable();
+}
+
+function renderNormalizedPrices() {
+  const sel = document.getElementById('norm-ticker-sel');
+  const selected = Array.from(sel.selectedOptions).map(o => o.value);
+
+  const traces = selected.map((t, i) => {
+    const td = TD[t];
+    if (!td) return null;
+    const base = td.prices.find(p => p !== null);
+    if (!base) return null;
+    return {
+      x: td.dates,
+      y: td.prices.map(p => p !== null ? (p / base * 100) : null),
+      name: t, type: 'scatter', mode: 'lines',
+      line: {width: 2, color: PAL[i % PAL.length]},
+      connectgaps: false,
+      hovertemplate: `<b>${t}</b><br>%{x}<br>Index: %{y:.1f}<extra></extra>`
+    };
+  }).filter(Boolean);
+
+  Plotly.newPlot('ch-normalized', traces, {
+    ...LY,
+    xaxis: {...LY.xaxis, type: 'date', rangebreaks: rbk()},
+    yaxis: {...LY.yaxis, title: 'Normalized Price (Base=100)'},
+    legend: {...LY.legend, orientation: 'h', y: -0.18, x: 0},
+    margin: {t: 8, r: 16, b: 80, l: 58},
+    shapes: [{type: 'line', x0: DATES[0], x1: DATES[DATES.length-1], y0: 100, y1: 100,
+              line: {color: '#30363d', width: 1, dash: 'dash'}}]
+  }, CFG);
+}
+
+function sortPATable(key) {
+  if (paSortKey === key) paSortAsc = !paSortAsc;
+  else { paSortKey = key; paSortAsc = key === 'ticker'; }
+  renderPATable();
+}
+
+function renderPATable() {
+  const sorted = [...paData].sort((a, b) => {
+    let va, vb;
+    switch(paSortKey) {
+      case 'ticker': va = a.ticker; vb = b.ticker;
+        return paSortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+      case 'price': va = a.currentPrice; vb = b.currentPrice; break;
+      case 'high': va = a.periodHigh; vb = b.periodHigh; break;
+      case 'low': va = a.periodLow; vb = b.periodLow; break;
+      case 'fromHigh': va = a.drawdownFromHigh; vb = b.drawdownFromHigh; break;
+      case 'fromLow': va = a.upsideFromLow; vb = b.upsideFromLow; break;
+      case 'return': va = a.totalReturn; vb = b.totalReturn; break;
+      case 'vol': va = a.annualVol; vb = b.annualVol; break;
+      case 'weight': va = Math.abs(a.latestWeight); vb = Math.abs(b.latestWeight); break;
+      default: va = a.totalReturn; vb = b.totalReturn;
+    }
+    return paSortAsc ? va - vb : vb - va;
+  });
+
+  document.querySelectorAll('#pa-table th.sortable').forEach(th => {
+    const key = th.getAttribute('onclick').match(/'(\w+)'/)[1];
+    th.classList.toggle('sort-active', key === paSortKey);
+  });
+
+  document.getElementById('pa-tbody').innerHTML = sorted.map(d => {
+    const ddClass = d.drawdownFromHigh === 0 ? 'up' : 'dn';
+    const wClass = d.latestWeight > 0 ? 'up' : d.latestWeight < 0 ? 'dn' : 'neu';
+    return `<tr>
+      <td class="ticker-cell" style="cursor:pointer" onclick="goTicker('${d.ticker}')">${d.ticker}</td>
+      <td style="color:var(--text2)">${fmtPrice(d.currentPrice, d.ticker)}</td>
+      <td style="color:var(--green)">${fmtPrice(d.periodHigh, d.ticker)}</td>
+      <td style="color:var(--red)">${fmtPrice(d.periodLow, d.ticker)}</td>
+      <td class="${ddClass}" style="font-weight:600">${fmtPct(d.drawdownFromHigh, 1)}</td>
+      <td class="up">${fmtPct(d.upsideFromLow, 1)}</td>
+      <td class="${pctClass(d.totalReturn)}" style="font-weight:600">${fmtPct(d.totalReturn, 1)}</td>
+      <td style="color:var(--orange)">${d.annualVol.toFixed(1)}%</td>
+      <td class="${wClass}">${d.latestWeight ? fmtPct(d.latestWeight, 3) : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// RISK & ANALYTICS
+// ══════════════════════════════════════════════════════
+
+let riskRendered = false;
+
+function getGeo(ticker) {
+  if (ticker.endsWith(' KS') || ticker.endsWith(' KP')) return 'South Korea';
+  if (ticker.endsWith(' TT')) return 'Taiwan';
+  if (ticker.endsWith(' JT')) return 'Japan';
+  if (ticker.endsWith(' CH')) return 'China (A-shares)';
+  if (ticker.endsWith(' GY')) return 'Germany';
+  if (['BABA','BIDU','ASHR'].includes(ticker)) return 'China (ADR/ETF)';
+  if (['EWY'].includes(ticker)) return 'South Korea (ETF)';
+  if (['NQA','1OH6','2OH6','MSXXQE7'].includes(ticker)) return 'Derivatives';
+  return 'United States';
+}
+
+function renderRisk() {
+  if (riskRendered) return;
+  riskRendered = true;
+
+  const entries = Object.entries(LW);
+  const weights = entries.map(([,w]) => w);
+  const absWeights = weights.map(w => Math.abs(w));
+  const gross = absWeights.reduce((s,v) => s+v, 0);
+  const longGrossVal = absWeights.filter((_,i) => weights[i]>0).reduce((s,v)=>s+v,0);
+  const shortGrossVal = absWeights.filter((_,i) => weights[i]<0).reduce((s,v)=>s+v,0);
+
+  const normalizedW = absWeights.map(w => w / gross);
+  const hhi = normalizedW.reduce((s, w) => s + w*w, 0);
+  const effectiveN = 1 / hhi;
+
+  const sortedAbs = [...absWeights].sort((a,b) => b-a);
+  const top5 = sortedAbs.slice(0,5).reduce((s,v) => s+v, 0) / gross * 100;
+  const top10 = sortedAbs.slice(0,10).reduce((s,v) => s+v, 0) / gross * 100;
+  const lsRatio = shortGrossVal > 0 ? (longGrossVal / shortGrossVal) : Infinity;
+
+  document.getElementById('risk-kpis').innerHTML = `
+    <div class="stat-card"><div class="stat-label">HHI (Concentration)</div>
+      <div class="stat-value neu">${(hhi*10000).toFixed(0)}</div>
+      <div class="stat-sub">Effective N = ${effectiveN.toFixed(1)} positions</div></div>
+    <div class="stat-card"><div class="stat-label">Top 5 Concentration</div>
+      <div class="stat-value" style="color:var(--orange)">${top5.toFixed(1)}%</div>
+      <div class="stat-sub">of gross exposure</div></div>
+    <div class="stat-card"><div class="stat-label">Top 10 Concentration</div>
+      <div class="stat-value" style="color:var(--purple)">${top10.toFixed(1)}%</div>
+      <div class="stat-sub">of gross exposure</div></div>
+    <div class="stat-card"><div class="stat-label">Long / Short Ratio</div>
+      <div class="stat-value neu">${lsRatio === Infinity ? '∞' : lsRatio.toFixed(2)}x</div>
+      <div class="stat-sub">L: ${longGrossVal.toFixed(2)} · S: ${shortGrossVal.toFixed(2)}</div></div>
+  `;
+
+  // Geographic breakdown
+  const geoMap = {};
+  entries.forEach(([t, w]) => {
+    const geo = getGeo(t);
+    if (!geoMap[geo]) geoMap[geo] = 0;
+    geoMap[geo] += Math.abs(w);
+  });
+  const geoLabels = Object.keys(geoMap).sort((a,b) => geoMap[b] - geoMap[a]);
+  const geoValues = geoLabels.map(g => geoMap[g]);
+
+  Plotly.newPlot('ch-geo', [{
+    labels: geoLabels, values: geoValues,
+    type: 'pie', hole: 0.45,
+    textinfo: 'label+percent',
+    textfont: {size: 11, color: '#e6edf3'},
+    marker: { colors: PAL.slice(0, geoLabels.length) },
+    hovertemplate: '<b>%{label}</b><br>Gross: %{value:.3f}<br>%{percent}<extra></extra>'
+  }], {
+    ...LY, showlegend: true,
+    legend: {...LY.legend, orientation: 'v', x: 1.02, y: 0.5, font:{size:10}},
+    margin: {t: 8, r: 130, b: 8, l: 8}
+  }, CFG);
+
+  // Position size distribution
+  Plotly.newPlot('ch-pos-dist', [{
+    x: absWeights, type: 'histogram', nbinsx: 20,
+    marker: {color: 'rgba(188,140,255,.7)', line: {color: 'rgba(188,140,255,.3)', width: 1}},
+    hovertemplate: '|Weight|: %{x:.3f}%<br>Count: %{y}<extra></extra>'
+  }], {
+    ...LY,
+    xaxis: {...LY.xaxis, title: '|Weight| (%)'},
+    yaxis: {...LY.yaxis, title: '# Positions'},
+    margin: {t: 8, r: 16, b: 48, l: 46}
+  }, CFG);
+
+  // Long vs Short gross over time
+  const longG = DATES.map((_, di) =>
+    Object.values(HM).reduce((s, row) => s + (row[di] !== null && row[di] > 0 ? row[di] : 0), 0));
+  const shortG = DATES.map((_, di) =>
+    Object.values(HM).reduce((s, row) => s + (row[di] !== null && row[di] < 0 ? Math.abs(row[di]) : 0), 0));
+
+  Plotly.newPlot('ch-ls-exposure', [
+    {x: DATES, y: longG, name: 'Long Gross', type: 'scatter', mode: 'lines',
+     fill: 'tozeroy', fillcolor: 'rgba(63,185,80,.12)',
+     line: {color: 'rgba(63,185,80,.8)', width: 2},
+     hovertemplate: '%{x}<br>Long Gross: %{y:.3f}%<extra></extra>'},
+    {x: DATES, y: shortG.map(v => -v), name: 'Short Gross', type: 'scatter', mode: 'lines',
+     fill: 'tozeroy', fillcolor: 'rgba(248,81,73,.12)',
+     line: {color: 'rgba(248,81,73,.8)', width: 2},
+     hovertemplate: '%{x}<br>Short Gross: %{y:.3f}%<extra></extra>'},
+    {x: DATES, y: DATES.map((_,i) => longG[i] - shortG[i]), name: 'Net', type: 'scatter', mode: 'lines',
+     line: {color: '#e3b341', width: 2, dash: 'dot'},
+     hovertemplate: '%{x}<br>Net: %{y:.3f}%<extra></extra>'}
+  ], {
+    ...LY,
+    xaxis: {...LY.xaxis, type: 'date', rangebreaks: rbk()},
+    yaxis: {...LY.yaxis, title: 'Gross Exposure (%)', zeroline: true},
+    legend: {...LY.legend, orientation: 'h', y: -0.22, x: 0},
+    margin: {t: 8, r: 16, b: 80, l: 58}
+  }, CFG);
+
+  // Turnover
+  const turnover = DATES.map((_, di) => {
+    if (di === 0) return 0;
+    return Object.values(HM).reduce((s, row) => {
+      return s + Math.abs((row[di] || 0) - (row[di - 1] || 0));
+    }, 0);
+  });
+
+  Plotly.newPlot('ch-turnover', [{
+    x: DATES, y: turnover, type: 'bar',
+    marker: {color: 'rgba(227,179,65,.55)'},
+    hovertemplate: '%{x}<br>Turnover: %{y:.3f}%<extra></extra>'
+  }], {
+    ...LY,
+    xaxis: {...LY.xaxis, type: 'date', rangebreaks: rbk()},
+    yaxis: {...LY.yaxis, title: 'Σ |ΔWeight| (%)'},
+    margin: {t: 8, r: 16, b: 50, l: 58}
+  }, CFG);
+
+  // Concentration over time — top 5
+  const top5Conc = DATES.map((_, di) => {
+    const dayW = Object.values(HM).map(row => Math.abs(row[di] || 0)).filter(v => v > 0);
+    if (!dayW.length) return 0;
+    const dayGross = dayW.reduce((s, v) => s + v, 0);
+    dayW.sort((a, b) => b - a);
+    return dayW.slice(0, 5).reduce((s, v) => s + v, 0) / dayGross * 100;
+  });
+
+  Plotly.newPlot('ch-concentration', [{
+    x: DATES, y: top5Conc,
+    type: 'scatter', mode: 'lines+markers',
+    line: {color: '#bc8cff', width: 2},
+    marker: {size: 5},
+    fill: 'tozeroy', fillcolor: 'rgba(188,140,255,.06)',
+    hovertemplate: '%{x}<br>Top 5: %{y:.1f}% of gross<extra></extra>'
+  }], {
+    ...LY,
+    xaxis: {...LY.xaxis, type: 'date', rangebreaks: rbk()},
+    yaxis: {...LY.yaxis, title: 'Top 5 as % of Gross', range: [0, 100]},
+    margin: {t: 8, r: 16, b: 50, l: 58}
+  }, CFG);
+}
+
+// ══════════════════════════════════════════════════════
+// VALUATION — Core Positions EPS & P/E Tracker
+// ══════════════════════════════════════════════════════
+
+const VAL_POSITIONS = [
+  {ticker:"AVGO",name:"Broadcom",sector:"Semis / AI ASIC",eps26C:12.14,eps27C:19.73,eps26Cons:11.81,eps27Cons:15.76,lastUpdate:"2026-03-16"},
+  {ticker:"TSM",name:"TSMC (ADR)",sector:"Foundry",eps26C:15.80,eps27C:20.50,eps26Cons:14.45,eps27Cons:17.70,lastUpdate:"2026-02-11"},
+  {ticker:"NVDA",name:"NVIDIA",sector:"GPU / AI Infra",eps26C:9.50,eps27C:13.18,eps26Cons:8.00,eps27Cons:11.00,lastUpdate:"2026-03-16"},
+  {ticker:"AMD",name:"Adv. Micro Devices",sector:"GPU / CPU",eps26C:10.00,eps27C:12.00,eps26Cons:6.80,eps27Cons:11.20,lastUpdate:"2026-03-16"},
+  {ticker:"AAPL",name:"Apple",sector:"Consumer Tech",eps26C:9.00,eps27C:9.90,eps26Cons:8.60,eps27Cons:9.60,lastUpdate:"2026-02-04"},
+  {ticker:"GOOG",name:"Alphabet (C)",sector:"Search / Cloud / AI",eps26C:11.60,eps27C:13.60,eps26Cons:11.20,eps27Cons:12.90,lastUpdate:"2026-03-16"},
+  {ticker:"META",name:"Meta Platforms",sector:"Social / AI Infra",eps26C:32.75,eps27C:39.00,eps26Cons:30.00,eps27Cons:34.60,lastUpdate:"2026-02-04"},
+  {ticker:"AMZN",name:"Amazon",sector:"E-Com / Cloud (AWS)",eps26C:9.00,eps27C:10.00,eps26Cons:7.80,eps27Cons:9.40,lastUpdate:"2026-02-11"},
+  {ticker:"MSFT",name:"Microsoft",sector:"Cloud / Enterprise AI",eps26C:18.00,eps27C:21.00,eps26Cons:17.60,eps27Cons:20.45,lastUpdate:"2026-02-11"},
+  {ticker:"LITE",name:"Lumentum",sector:"Photonics / Optical",eps26C:12.80,eps27C:31.50,eps26Cons:10.87,eps27Cons:15.00,lastUpdate:"2026-03-16"},
+  {ticker:"COHR",name:"Coherent",sector:"Photonics / Laser",eps26C:9.26,eps27C:15.30,eps26Cons:6.50,eps27Cons:8.72,lastUpdate:"2026-03-16"},
+  {ticker:"NFLX",name:"Netflix",sector:"Streaming",eps26C:3.23,eps27C:3.86,eps26Cons:3.23,eps27Cons:3.86,lastUpdate:"2026-03-16"},
+  {ticker:"SPOT",name:"Spotify",sector:"Streaming / Audio",eps26C:12.70,eps27C:16.15,eps26Cons:12.70,eps27Cons:16.15,lastUpdate:"2026-03-16"},
+  {ticker:"UBER",name:"Uber Technologies",sector:"Ride-Share / Delivery",eps26C:3.12,eps27C:4.27,eps26Cons:3.12,eps27Cons:4.27,lastUpdate:"2026-03-16"},
+  {ticker:"BKNG",name:"Booking Holdings",sector:"Online Travel",eps26C:268.00,eps27C:313.00,eps26Cons:268.00,eps27Cons:313.00,lastUpdate:"2026-03-16"},
+  {ticker:"ORCL",name:"Oracle",sector:"Cloud / Enterprise",eps26C:7.42,eps27C:9.34,eps26Cons:7.42,eps27Cons:9.34,lastUpdate:"2026-03-16"},
+  {ticker:"NOW",name:"ServiceNow",sector:"Cloud / Enterprise",eps26C:4.20,eps27C:5.06,eps26Cons:4.20,eps27Cons:5.06,lastUpdate:"2026-03-16"},
+  {ticker:"GEV",name:"GE Vernova",sector:"Energy / Power",eps26C:14.46,eps27C:23.21,eps26Cons:14.46,eps27Cons:23.21,lastUpdate:"2026-03-16"},
+  {ticker:"ENR GY",name:"Siemens Energy",sector:"Energy / Grid",eps26C:4.32,eps27C:5.91,eps26Cons:4.32,eps27Cons:5.91,lastUpdate:"2026-03-16"},
+  {ticker:"AGX",name:"Argan Inc",sector:"Power / Construction",eps26C:11.50,eps27C:15.20,eps26Cons:11.50,eps27Cons:15.20,lastUpdate:"2026-03-16"},
+  {ticker:"CSCO",name:"Cisco Systems",sector:"Networking",eps26C:4.29,eps27C:4.73,eps26Cons:4.29,eps27Cons:4.73,lastUpdate:"2026-03-16"},
+  {ticker:"ANET",name:"Arista Networks",sector:"Cloud Networking",eps26C:3.50,eps27C:4.22,eps26Cons:3.50,eps27Cons:4.22,lastUpdate:"2026-03-16"},
+];
+const VAL_PRICES = {AVGO:324.45,TSM:340.16,NVDA:183.19,AMD:197.74,AAPL:253.39,GOOG:304.26,META:628.59,AMZN:208.75,MSFT:397.33,LITE:700.18,COHR:247.40,NFLX:95.20,SPOT:565.19,UBER:73.33,BKNG:4293.02,ORCL:155.94,NOW:114.89,GEV:827.88,"ENR GY":150.00,AGX:466.89,CSCO:78.33,ANET:136.00};
+const VAL_52W = {AVGO:{low:138.10,high:414.61},TSM:{low:134.25,high:390.21},NVDA:{low:86.62,high:212.19},AMD:{low:76.48,high:267.08},AAPL:{low:169.21,high:288.62},GOOG:{low:142.66,high:350.15},META:{low:479.80,high:796.25},AMZN:{low:161.38,high:258.60},MSFT:{low:344.79,high:555.45},LITE:{low:45.65,high:783.80},COHR:{low:45.58,high:300.20},NFLX:{low:75.01,high:134.12},SPOT:{low:405.00,high:785.00},UBER:{low:60.63,high:101.99},BKNG:{low:3765.45,high:5839.41},ORCL:{low:130.00,high:320.00},NOW:{low:80.00,high:180.00},GEV:{low:252.25,high:894.93},"ENR GY":{low:41.81,high:167.90},AGX:{low:80.00,high:460.00},CSCO:{low:52.11,high:88.19},ANET:{low:59.43,high:164.94}};
+const VAL_MKTCAP = {AVGO:1530,TSM:1750,NVDA:4440,AMD:313,AAPL:3900,GOOG:1860,META:1540,AMZN:2200,MSFT:3010,LITE:47.5,COHR:39,NFLX:410,SPOT:115,UBER:153,BKNG:145,ORCL:430,NOW:115,GEV:225,"ENR GY":140,AGX:10,CSCO:316,ANET:170};
+
+let valEpsMode = 'capstone';
+let valYearMode = '26';
+let valSortKey = 'ticker';
+let valSortAsc = true;
+let valRendered = false;
+
+function fmtMktCap(b) { return b >= 1000 ? '$'+(b/1000).toFixed(1)+'T' : '$'+b.toFixed(0)+'B'; }
+function fmtValPct(v) { if(v==null||isNaN(v)) return '—'; return (v>=0?'+':'')+((v*100).toFixed(1))+'%'; }
+
+function setValEps(mode, el) {
+  valEpsMode = mode;
+  el.parentElement.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  valRendered = false;
+  renderValuation();
+}
+function setValYear(yr, el) {
+  valYearMode = yr;
+  el.parentElement.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  valRendered = false;
+  renderValuation();
+}
+function sortValTable(key) {
+  if (valSortKey === key) valSortAsc = !valSortAsc;
+  else { valSortKey = key; valSortAsc = key === 'ticker'; }
+  renderValTableBody();
+}
+
+function getValEnriched() {
+  return VAL_POSITIONS.map(p => {
+    const price = VAL_PRICES[p.ticker];
+    const eps = valEpsMode === 'capstone'
+      ? (valYearMode === '26' ? p.eps26C : p.eps27C)
+      : (valYearMode === '26' ? p.eps26Cons : p.eps27Cons);
+    const pe = eps && price ? price / eps : null;
+    const e26 = valEpsMode === 'capstone' ? p.eps26C : p.eps26Cons;
+    const e27 = valEpsMode === 'capstone' ? p.eps27C : p.eps27Cons;
+    const epsGrowth = e26 && e27 ? (e27 - e26) / e26 : null;
+    const capEps = valYearMode === '26' ? p.eps26C : p.eps27C;
+    const consEps = valYearMode === '26' ? p.eps26Cons : p.eps27Cons;
+    const diffPct = consEps ? (capEps - consEps) / consEps : null;
+    const peg = pe && epsGrowth && epsGrowth > 0 ? pe / (epsGrowth * 100) : null;
+    return {...p, price, eps, pe, epsGrowth, diffPct, peg, mktCap: VAL_MKTCAP[p.ticker], w52: VAL_52W[p.ticker]};
+  });
+}
+
+function renderValuation() {
+  const enriched = getValEnriched();
+  const avgPE = enriched.reduce((s,p) => s+(p.pe||0),0) / enriched.filter(p=>p.pe).length;
+  const avgGrowth = enriched.reduce((s,p) => s+(p.epsGrowth||0),0) / enriched.filter(p=>p.epsGrowth).length;
+  const totalMktCap = enriched.reduce((s,p) => s+(p.mktCap||0),0);
+
+  document.getElementById('val-kpis').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Positions</div>
+      <div class="stat-value neu">${VAL_POSITIONS.length}</div>
+      <div class="stat-sub">core equities</div></div>
+    <div class="stat-card"><div class="stat-label">Avg P/E (${valEpsMode==='capstone'?'Cap':'Cons'} CY${valYearMode}E)</div>
+      <div class="stat-value neu">${avgPE.toFixed(1)}x</div>
+      <div class="stat-sub">${valEpsMode} estimates</div></div>
+    <div class="stat-card"><div class="stat-label">Avg EPS Growth (26→27)</div>
+      <div class="stat-value ${avgGrowth>=0?'up':'dn'}">${fmtValPct(avgGrowth)}</div>
+      <div class="stat-sub">year-over-year</div></div>
+    <div class="stat-card"><div class="stat-label">Combined Mkt Cap</div>
+      <div class="stat-value" style="color:var(--orange)">${fmtMktCap(totalMktCap)}</div>
+      <div class="stat-sub">${VAL_POSITIONS.length} companies</div></div>
+  `;
+
+  renderValTableBody();
+
+  // EPS detail cards
+  document.getElementById('val-eps-cards').innerHTML = enriched.map(p => {
+    const bar26 = p.eps26Cons > 0 ? ((p.eps26C - p.eps26Cons) / p.eps26Cons * 100) : 0;
+    const bar27 = p.eps27Cons > 0 ? ((p.eps27C - p.eps27Cons) / p.eps27Cons * 100) : 0;
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);padding:14px 16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-weight:700;color:var(--blue);font-size:.9rem">${p.ticker}</span>
+        <span style="font-size:.65rem;color:var(--text3)">Upd: ${p.lastUpdate}</span>
+      </div>
+      ${[{yr:'CY26E',cons:p.eps26Cons,cap:p.eps26C,diff:bar26},{yr:'CY27E',cons:p.eps27Cons,cap:p.eps27C,diff:bar27}].map(r => `
+        <div style="margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px">
+            <span style="color:var(--text3);font-weight:600">${r.yr}</span>
+            <span style="color:${r.diff>0?'var(--green)':r.diff<0?'var(--red)':'var(--text)'};font-weight:600">
+              ${r.diff>0?'+':''}${r.diff.toFixed(1)}%
+            </span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--text3);margin-bottom:3px">
+            <span>Cons: $${r.cons.toFixed(2)}</span>
+            <span style="color:var(--blue);font-weight:600">Cap: $${r.cap.toFixed(2)}</span>
+          </div>
+          <div style="height:5px;background:var(--surface2);border-radius:3px;overflow:hidden">
+            <div style="height:5px;border-radius:3px;width:${Math.min(100,Math.abs(r.diff)*3+20)}%;background:${r.diff>5?'var(--green)':r.diff>0?'var(--blue)':'var(--red)'}"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+  }).join('');
+
+  // P/E chart
+  const sortedPE = [...enriched].filter(p=>p.pe).sort((a,b) => a.pe - b.pe);
+  Plotly.newPlot('ch-val-pe', [{
+    y: sortedPE.map(d => d.ticker),
+    x: sortedPE.map(d => d.pe),
+    type: 'bar', orientation: 'h',
+    marker: {color: sortedPE.map(d => d.pe < avgPE ? 'rgba(63,185,80,.75)' : d.pe > avgPE*1.3 ? 'rgba(227,179,65,.75)' : 'rgba(88,166,255,.75)')},
+    hovertemplate: '<b>%{y}</b><br>P/E: %{x:.1f}x<extra></extra>'
+  },{
+    y: [sortedPE[0]?.ticker, sortedPE[sortedPE.length-1]?.ticker],
+    x: [avgPE, avgPE],
+    type: 'scatter', mode: 'lines',
+    line: {color: '#e3b341', width: 2, dash: 'dash'},
+    name: 'Avg P/E',
+    hovertemplate: 'Avg: %{x:.1f}x<extra></extra>'
+  }], {
+    ...LY, showlegend: false,
+    xaxis: {...LY.xaxis, title: `Forward P/E (${valEpsMode} CY${valYearMode}E)`, zeroline: true},
+    yaxis: {...LY.yaxis, tickfont: {size: 11}},
+    margin: {t: 8, r: 16, b: 48, l: 60},
+    shapes: [{type:'line',x0:avgPE,x1:avgPE,y0:-0.5,y1:sortedPE.length-0.5,line:{color:'#e3b341',width:1.5,dash:'dash'}}]
+  }, CFG);
+
+  // Growth chart
+  const sortedG = [...enriched].filter(p=>p.epsGrowth!=null).sort((a,b) => a.epsGrowth - b.epsGrowth);
+  Plotly.newPlot('ch-val-growth', [{
+    y: sortedG.map(d => d.ticker),
+    x: sortedG.map(d => d.epsGrowth * 100),
+    type: 'bar', orientation: 'h',
+    marker: {color: sortedG.map(d => d.epsGrowth >= 0.5 ? 'rgba(63,185,80,.85)' : d.epsGrowth >= 0.2 ? 'rgba(88,166,255,.75)' : 'rgba(227,179,65,.75)')},
+    hovertemplate: '<b>%{y}</b><br>Growth: %{x:.1f}%<extra></extra>'
+  }], {
+    ...LY,
+    xaxis: {...LY.xaxis, title: 'EPS Growth CY26→CY27 (%)', zeroline: true},
+    yaxis: {...LY.yaxis, tickfont: {size: 11}},
+    margin: {t: 8, r: 16, b: 48, l: 60}
+  }, CFG);
+
+  valRendered = true;
+}
+
+function renderValTableBody() {
+  const enriched = getValEnriched();
+  const avgPE = enriched.reduce((s,p) => s+(p.pe||0),0) / enriched.filter(p=>p.pe).length;
+
+  const sorted = [...enriched].sort((a,b) => {
+    let va, vb;
+    switch(valSortKey) {
+      case 'ticker': va=a.ticker; vb=b.ticker; return valSortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+      case 'price': va=a.price||0; vb=b.price||0; break;
+      case 'mktCap': va=a.mktCap||0; vb=b.mktCap||0; break;
+      case 'eps': va=a.eps||0; vb=b.eps||0; break;
+      case 'pe': va=a.pe||999; vb=b.pe||999; break;
+      case 'growth': va=a.epsGrowth||0; vb=b.epsGrowth||0; break;
+      case 'diff': va=a.diffPct||0; vb=b.diffPct||0; break;
+      case 'peg': va=a.peg||999; vb=b.peg||999; break;
+      default: va=0; vb=0;
+    }
+    return valSortAsc ? va-vb : vb-va;
+  });
+
+  document.querySelectorAll('#val-table th.sortable').forEach(th => {
+    const m = th.getAttribute('onclick').match(/'(\w+)'/);
+    if(m) th.classList.toggle('sort-active', m[1] === valSortKey);
+  });
+
+  document.getElementById('val-tbody').innerHTML = sorted.map(p => {
+    const pegColor = p.peg!=null ? (p.peg<0.8?'up':p.peg<1.5?'neu':'dn') : '';
+    const peColor = p.pe ? (p.pe < avgPE ? 'up' : p.pe > avgPE*1.3 ? 'dn' : '') : '';
+    const diffColor = p.diffPct!=null ? (p.diffPct>0.05?'up':p.diffPct<-0.05?'dn':'neu') : '';
+    const signal = p.diffPct!=null && p.peg!=null
+      ? (p.diffPct>0.1 && p.peg<1.2 ? {t:'ALPHA',c:'badge-long'} : p.diffPct<-0.05||p.peg>2 ? {t:'RICH',c:'badge-short'} : {t:'FAIR',c:''})
+      : null;
+
+    const w52 = p.w52;
+    const rangePct = w52 ? Math.max(0,Math.min(100,((p.price-w52.low)/(w52.high-w52.low)*100))).toFixed(0) : null;
+    const rangeColor = rangePct ? (rangePct>60?'var(--green)':rangePct<30?'var(--red)':'var(--orange)') : '';
+
+    return `<tr>
+      <td style="padding:7px 12px;border-bottom:1px solid var(--border2)">
+        <div><span style="font-weight:700;color:var(--blue);font-size:.85rem">${p.ticker}</span></div>
+        <div style="font-size:.68rem;color:var(--text3)">${p.name}</div>
+      </td>
+      <td style="padding:7px 12px;border-bottom:1px solid var(--border2);font-size:.72rem;color:var(--text3)">${p.sector}</td>
+      <td style="padding:7px 12px;border-bottom:1px solid var(--border2);text-align:right;font-weight:600;font-size:.88rem">$${p.price.toFixed(2)}</td>
+      <td style="padding:7px 12px;border-bottom:1px solid var(--border2);text-align:right;font-size:.78rem;color:var(--text2)">${fmtMktCap(p.mktCap)}</td>
+      <td style="padding:7px 12px;border-bottom:1px solid var(--border2);min-width:130px">
+        ${w52 ? `<div style="display:flex;align-items:center;gap:5px">
+          <span style="font-size:.6rem;color:var(--text3)">${w52.low.toFixed(0)}</span>
+          <div style="flex:1;height:4px;background:var(--surface2);border-radius:2px;position:relative;min-width:40px">
+            <div style="position:absolute;left:0;top:0;height:4px;border-radius:2px;width:${rangePct}%;background:${rangeColor}"></div>
+            <div style="position:absolute;left:${rangePct}%;top:-3px;width:8px;height:10px;border-radius:50%;background:var(--text);transform:translateX(-50%)"></div>
+          </div>
+          <span style="font-size:.6rem;color:var(--text3)">${w52.high.toFixed(0)}</span>
+        </div>` : '—'}
+      </td>
+      <td style="padding:7px 12px;border-bottom:1px solid var(--border2);text-align:right;font-weight:600;font-size:.85rem">$${p.eps?p.eps.toFixed(2):'—'}</td>
+      <td style="padding:7px 12px;border-bottom:1px solid var(--border2);text-align:right;font-weight:600" class="${peColor}">${p.pe?p.pe.toFixed(1)+'x':'—'}</td>
+      <td style="padding:7px 12px;border-bottom:1px solid var(--border2);text-align:right;font-weight:600" class="${p.epsGrowth>=0?'up':'dn'}">${p.epsGrowth!=null?fmtValPct(p.epsGrowth):'—'}</td>
+      <td style="padding:7px 12px;border-bottom:1px solid var(--border2);text-align:right">
+        ${p.diffPct!=null?`<span class="badge ${p.diffPct>0.05?'badge-long':p.diffPct<-0.05?'badge-short':''}" style="${Math.abs(p.diffPct)<=0.05?'background:rgba(227,179,65,.15);color:var(--orange)':''}">${fmtValPct(p.diffPct)}</span>`:'—'}
+      </td>
+      <td style="padding:7px 12px;border-bottom:1px solid var(--border2);text-align:right;font-weight:600" class="${pegColor}">${p.peg!=null?p.peg.toFixed(2):'—'}</td>
+      <td style="padding:7px 12px;border-bottom:1px solid var(--border2);text-align:center">
+        ${signal?`<span class="badge ${signal.c}" style="${!signal.c?'background:rgba(227,179,65,.15);color:var(--orange)':''}">${signal.t}</span>`:'—'}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// SCREEN
+// ══════════════════════════════════════════════════════
+const SCREEN_WL = [
+  {t:"NVDA",n:"NVIDIA",s:"GPU / AI Infra",p:185.21,lo:86.62,hi:212.19,chg:2.75},
+  {t:"AVGO",n:"Broadcom",s:"Semis / AI ASIC",p:327.92,lo:138.10,hi:414.61,chg:1.79},
+  {t:"META",n:"Meta Platforms",s:"Social / AI Infra",p:626.34,lo:479.80,hi:796.25,chg:2.15},
+  {t:"AAPL",n:"Apple",s:"Consumer Tech",p:252.17,lo:169.21,hi:288.62,chg:0.82},
+  {t:"GOOG",n:"Alphabet (C)",s:"Search / Cloud / AI",p:303.71,lo:142.66,hi:350.15,chg:0.75},
+  {t:"MSFT",n:"Microsoft",s:"Cloud / Enterprise AI",p:399.01,lo:344.79,hi:555.45,chg:0.87},
+  {t:"AMZN",n:"Amazon",s:"E-Com / Cloud (AWS)",p:211.01,lo:161.38,hi:258.60,chg:1.61},
+  {t:"LITE",n:"Lumentum",s:"Photonics / Optical",p:660.87,lo:45.65,hi:783.80,chg:6.16},
+  {t:"MRVL",n:"Marvell Technology",s:"Semis / Networking",p:92.28,lo:47.09,hi:102.77,chg:5.03},
+  {t:"CSCO",n:"Cisco Systems",s:"Networking",p:79.09,lo:52.11,hi:88.19,chg:0.97},
+  {t:"SPOT",n:"Spotify",s:"Streaming / Audio",p:525.38,lo:405.00,hi:785.00,chg:1.81},
+  {t:"FROG",n:"JFrog",s:"DevOps / Software",p:43.17,lo:27.00,hi:70.43,chg:5.11},
+  {t:"TSEM",n:"Tower Semiconductor",s:"Specialty Foundry",p:139.05,lo:28.64,hi:149.57,chg:11.50},
+  {t:"SNDK",n:"Sandisk (WDC)",s:"Memory / Storage",p:714.02,lo:27.89,hi:725.00,chg:7.92},
+  {t:"PSKY",n:"PowerSchool",s:"EdTech",p:9.64,lo:9.50,hi:20.86,chg:-0.31},
+  {t:"WBD",n:"Warner Bros. Discovery",s:"Media / Streaming",p:27.47,lo:7.52,hi:30.00,chg:1.22},
+  {t:"BX",n:"Blackstone",s:"Asset Management",p:106.63,lo:101.73,hi:190.09,chg:-0.14},
+  {t:"GDX",n:"VanEck Gold Miners",s:"ETF / Gold",p:94.15,lo:40.26,hi:117.18,chg:0.96},
+  {t:"QQQ",n:"Invesco QQQ Trust",s:"ETF / Nasdaq-100",p:601.46,lo:402.39,hi:637.01,chg:1.30},
+  {t:"SPY",n:"SPDR S&P 500",s:"ETF / S&P 500",p:669.89,lo:481.80,hi:697.84,chg:1.15},
+  {t:"RSP",n:"Invesco S&P 500 EW",s:"ETF / S&P Equal Weight",p:195.28,lo:150.35,hi:205.24,chg:0.91},
+  {t:"IWM",n:"iShares Russell 2000",s:"ETF / Small Cap",p:249.96,lo:171.73,hi:271.60,chg:1.37},
+  {t:"XLE",n:"Energy Select SPDR",s:"ETF / Energy",p:57.97,lo:37.25,hi:58.22,chg:0.47},
+  {t:"EWY",n:"iShares MSCI S. Korea",s:"ETF / South Korea",p:132.56,lo:48.49,hi:154.22,chg:6.77},
+  {t:"FN",n:"Fabrinet",s:"Optical Packaging",p:520.31,lo:148.55,hi:632.99,chg:3.62},
+  {t:"COHR",n:"Coherent",s:"Photonics / Laser",p:252.02,lo:45.58,hi:300.20,chg:3.81},
+  {t:"AAOI",n:"Applied Optoelectronics",s:"Optical Components",p:96.98,lo:9.71,hi:128.96,chg:0.18},
+  {t:"ANET",n:"Arista Networks",s:"Cloud Networking",p:135.36,lo:59.43,hi:164.94,chg:1.34},
+  {t:"CRDO",n:"Credo Technology",s:"Connectivity Semis",p:115.79,lo:29.09,hi:213.80,chg:-1.62},
+  {t:"UBER",n:"Uber Technologies",s:"Ride-Share / Delivery",p:74.97,lo:60.63,hi:101.99,chg:2.24},
+  {t:"LYFT",n:"Lyft",s:"Ride-Share",p:13.51,lo:9.66,hi:25.54,chg:3.33},
+  {t:"RDDT",n:"Reddit",s:"Social Media",p:138.04,lo:79.75,hi:282.95,chg:4.29},
+  {t:"XLP",n:"Consumer Staples SPDR",s:"ETF / Staples",p:85.05,lo:75.16,hi:90.14,chg:0.37},
+  {t:"TXN",n:"Texas Instruments",s:"Analog Semis",p:195.28,lo:139.95,hi:231.32,chg:2.36},
+  {t:"ADI",n:"Analog Devices",s:"Analog / Mixed-Signal",p:312.64,lo:158.65,hi:363.20,chg:2.14},
+  {t:"AMAT",n:"Applied Materials",s:"Semicap Equipment",p:346.08,lo:123.74,hi:395.95,chg:1.33},
+  {t:"DELL",n:"Dell Technologies",s:"Enterprise Hardware",p:157.17,lo:66.25,hi:168.08,chg:3.66},
+  {t:"NXPI",n:"NXP Semiconductors",s:"Auto / Industrial Semis",p:193.00,lo:148.09,hi:256.36,chg:1.12},
+  {t:"ON",n:"ON Semiconductor",s:"Power / Sensing Semis",p:60.40,lo:31.04,hi:73.76,chg:3.16},
+  {t:"KLAC",n:"KLA Corporation",s:"Semicap Equipment",p:1440.50,lo:551.33,hi:1693.35,chg:1.54},
+  {t:"FICO",n:"Fair Isaac",s:"Analytics / Scores",p:1163.27,lo:1068.67,hi:2217.60,chg:2.83},
+  {t:"APH",n:"Amphenol",s:"Connectors / Sensors",p:136.57,lo:56.45,hi:167.04,chg:1.98},
+  {t:"SOXX",n:"iShares Semiconductor",s:"ETF / Semis",p:340.35,lo:148.31,hi:368.82,chg:2.72},
+  {t:"SNPS",n:"Synopsys",s:"EDA / Chip Design",p:426.56,lo:365.74,hi:651.73,chg:3.38},
+  {t:"CDNS",n:"Cadence Design",s:"EDA / Chip Design",p:293.28,lo:221.56,hi:376.45,chg:2.18},
+  {t:"NEM",n:"Newmont",s:"Gold Mining",p:109.74,lo:42.93,hi:134.88,chg:0.15},
+  {t:"B",n:"Barnes Group",s:"Industrial / Aero",p:42.83,lo:17.00,hi:54.69,chg:1.16},
+  {t:"AEM",n:"Agnico Eagle Mines",s:"Gold Mining",p:209.54,lo:94.77,hi:255.24,chg:0.96},
+  {t:"KGC",n:"Kinross Gold",s:"Gold Mining",p:30.83,lo:11.12,hi:39.11,chg:0.85},
+  {t:"AU",n:"AngloGold Ashanti",s:"Gold Mining",p:96.40,lo:31.91,hi:129.14,chg:1.60},
+  {t:"VRT",n:"Vertiv Holdings",s:"Data Center Infra",p:266.89,lo:53.60,hi:276.78,chg:3.09},
+  {t:"ETN",n:"Eaton Corporation",s:"Power Management",p:361.79,lo:231.85,hi:408.45,chg:1.80},
+  {t:"CAT",n:"Caterpillar",s:"Heavy Equipment",p:701.34,lo:267.30,hi:789.81,chg:1.06},
+  {t:"BKNG",n:"Booking Holdings",s:"Online Travel",p:4284.05,lo:3765.45,hi:5839.41,chg:1.01},
+  {t:"ABNB",n:"Airbnb",s:"Online Travel",p:128.14,lo:99.88,hi:143.88,chg:1.46},
+  {t:"EXPE",n:"Expedia Group",s:"Online Travel",p:230.15,lo:130.01,hi:303.80,chg:0.78},
+  {t:"UNH",n:"UnitedHealth Group",s:"Healthcare / Insurance",p:287.13,lo:234.60,hi:606.36,chg:1.79},
+  {t:"KBWB",n:"Invesco KBW Bank",s:"ETF / Banks",p:76.53,lo:51.13,hi:91.44,chg:0.91},
+  {t:"XLF",n:"Financial Select SPDR",s:"ETF / Financials",p:49.29,lo:42.21,hi:56.52,chg:0.83},
+  {t:"CHIP11.SA",n:"Chipmakers ETF (BR)",s:"ETF / Semis (BRL)",p:25.75,lo:12.50,hi:28.41,chg:1.34},
+];
+
+let screenRendered = false;
+let screenNewsFetched = false;
+let screenFilter = 'all';
+const screenRSI = {};
+let screenRSIFetched = false;
+
+function calcRSI(closes, period=14) {
+  if(!closes || closes.length < period + 1) return null;
+  const changes = [];
+  for(let i = 1; i < closes.length; i++) changes.push(closes[i] - closes[i-1]);
+  let avgGain = 0, avgLoss = 0;
+  for(let i = 0; i < period; i++) {
+    if(changes[i] > 0) avgGain += changes[i]; else avgLoss += Math.abs(changes[i]);
+  }
+  avgGain /= period; avgLoss /= period;
+  for(let i = period; i < changes.length; i++) {
+    avgGain = (avgGain * (period-1) + (changes[i]>0?changes[i]:0)) / period;
+    avgLoss = (avgLoss * (period-1) + (changes[i]<0?Math.abs(changes[i]):0)) / period;
+  }
+  if(avgLoss === 0) return 100;
+  return 100 - (100 / (1 + avgGain / avgLoss));
+}
+
+function computeLocalRSI() {
+  SCREEN_WL.forEach(d => {
+    const td = TD[d.t];
+    if(td && td.prices) {
+      const prices = td.prices.filter(p => p != null);
+      const rsi = calcRSI(prices);
+      if(rsi != null) screenRSI[d.t] = rsi;
+    }
+  });
+}
+
+async function fetchScreenRSI() {
+  if(screenRSIFetched) return;
+  screenRSIFetched = true;
+  computeLocalRSI();
+  refreshScreenRSIBadges();
+
+  const missing = SCREEN_WL.filter(d => screenRSI[d.t] == null && !d.t.includes('.'));
+  const batchSize = 5;
+  for(let i = 0; i < missing.length; i += batchSize) {
+    const batch = missing.slice(i, i + batchSize);
+    const promises = batch.map(async ({t}) => {
+      try {
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${t}?interval=1d&range=1mo`;
+        const res = await fetch(url);
+        if(!res.ok) return;
+        const json = await res.json();
+        const closes = json?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
+        if(closes) {
+          const valid = closes.filter(c => c != null);
+          const rsi = calcRSI(valid);
+          if(rsi != null) screenRSI[t] = rsi;
+        }
+      } catch {}
+    });
+    await Promise.all(promises);
+    refreshScreenRSIBadges();
+  }
+  refreshScreenRSIBadges();
+}
+
+function rsiClass(v) {
+  if(v == null) return 'rsi-loading';
+  if(v < 30) return 'rsi-oversold';
+  if(v < 50) return 'rsi-neutral';
+  if(v < 70) return 'rsi-warm';
+  return 'rsi-overbought';
+}
+
+function rsiLabel(v) {
+  if(v == null) return '···';
+  const tag = v < 30 ? 'OVERSOLD' : v < 45 ? 'COOL' : v < 55 ? 'NEUTRAL' : v < 70 ? 'WARM' : 'OVERBOUGHT';
+  return v.toFixed(0) + ' ' + tag;
+}
+
+function refreshScreenRSIBadges() {
+  document.querySelectorAll('[data-rsi-ticker]').forEach(el => {
+    const t = el.getAttribute('data-rsi-ticker');
+    const v = screenRSI[t];
+    el.className = 'rsi-badge ' + rsiClass(v);
+    el.textContent = 'RSI ' + rsiLabel(v);
+  });
+}
+
+function setScreenFilter(f, el) {
+  screenFilter = f;
+  el.closest('.pill-group').querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  screenRendered = false;
+  renderScreen();
+}
+
+function renderScreen() {
+  const sectors = {
+    all: () => true,
+    semis: d => /semi|gpu|foundry|photon|optical|eda|connect|semicap|analog|memory|power.*semi|sensing/i.test(d.s),
+    tech: d => /cloud|ai|social|consumer tech|stream|devops|edtech|media|ride|reddit|analytics|enterprise/i.test(d.s),
+    etf: d => /etf/i.test(d.s),
+    gold: d => /gold/i.test(d.s),
+    other: d => !(/semi|gpu|foundry|photon|optical|eda|connect|semicap|analog|memory|power.*semi|sensing|cloud|ai|social|consumer tech|stream|devops|edtech|media|ride|reddit|analytics|enterprise|etf|gold/i.test(d.s)),
+  };
+
+  const allData = SCREEN_WL.map(d => {
+    const drawdown = ((d.p - d.hi) / d.hi * 100);
+    const rangePct = d.hi !== d.lo ? ((d.p - d.lo) / (d.hi - d.lo) * 100) : null;
+    return { ticker: d.t, name: d.n, sector: d.s, price: d.p, range: {low:d.lo,high:d.hi}, drawdown, rangePct, chg: d.chg };
+  });
+
+  const filterFn = sectors[screenFilter] || sectors.all;
+  const data = allData.filter(filterFn);
+
+  const sorted = [...data].sort((a,b) => b.chg - a.chg);
+  const topG = sorted[0];
+  const topL = sorted[sorted.length - 1];
+  const avgDD = data.reduce((s,d) => s + d.drawdown, 0) / data.length;
+  const greenCount = data.filter(d => d.chg > 0).length;
+  const redCount = data.filter(d => d.chg < 0).length;
+
+  document.getElementById('screen-kpis').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Watchlist</div>
+      <div class="stat-value" style="color:var(--blue)">${data.length}<span style="font-size:.7rem;color:var(--text3)"> / ${SCREEN_WL.length}</span></div>
+      <div class="stat-sub"><span class="up">${greenCount} ▲</span> · <span class="dn">${redCount} ▼</span></div></div>
+    <div class="stat-card"><div class="stat-label">Top Gainer (day)</div>
+      <div class="stat-value up">${topG.ticker} +${topG.chg.toFixed(1)}%</div>
+      <div class="stat-sub">${topG.name}</div></div>
+    <div class="stat-card"><div class="stat-label">Top Loser (day)</div>
+      <div class="stat-value dn">${topL.ticker} ${topL.chg.toFixed(1)}%</div>
+      <div class="stat-sub">${topL.name}</div></div>
+    <div class="stat-card"><div class="stat-label">Avg from 52W High</div>
+      <div class="stat-value dn">${avgDD.toFixed(1)}%</div>
+      <div class="stat-sub">across ${data.length} names</div></div>
+  `;
+
+  // Filter pills (render once)
+  if(!document.getElementById('screen-filter-pills')) {
+    const filterBar = document.createElement('div');
+    filterBar.id = 'screen-filter-pills';
+    filterBar.className = 'controls';
+    filterBar.style.marginBottom = '8px';
+    filterBar.innerHTML = `<div class="ctrl"><label>Filter</label>
+      <div class="pill-group">
+        <div class="pill active" onclick="setScreenFilter('all',this)">All (${SCREEN_WL.length})</div>
+        <div class="pill" onclick="setScreenFilter('semis',this)">Semis</div>
+        <div class="pill" onclick="setScreenFilter('tech',this)">Tech</div>
+        <div class="pill" onclick="setScreenFilter('etf',this)">ETFs</div>
+        <div class="pill" onclick="setScreenFilter('gold',this)">Gold</div>
+        <div class="pill" onclick="setScreenFilter('other',this)">Other</div>
+      </div></div>`;
+    document.getElementById('screen-kpis').parentNode.insertBefore(filterBar, document.getElementById('screen-kpis').nextSibling);
+  }
+
+  // Stock cards
+  document.getElementById('screen-cards').innerHTML = sorted.map(d => {
+    const rPct = d.rangePct != null ? Math.max(0,Math.min(100,d.rangePct)).toFixed(0) : null;
+    const rColor = rPct ? (rPct>60?'var(--green)':rPct<30?'var(--red)':'var(--orange)') : '';
+    const chgClass = d.chg >= 0 ? 'up' : 'dn';
+    const chgSign = d.chg >= 0 ? '+' : '';
+    const isBRL = d.ticker === 'CHIP11.SA';
+    const cur = isBRL ? 'R$' : '$';
+
+    const rsiVal = screenRSI[d.ticker];
+    const rsiCls = rsiClass(rsiVal);
+    const rsiTxt = rsiLabel(rsiVal);
+
+    return `<a href="https://finance.yahoo.com/quote/${d.ticker}" target="_blank" rel="noopener" class="screen-card" style="text-decoration:none;color:inherit">
+      <div class="sc-head">
+        <div>
+          <div class="sc-ticker">${d.ticker} <span class="rsi-badge ${rsiCls}" data-rsi-ticker="${d.ticker}">RSI ${rsiTxt}</span></div>
+          <div class="sc-name">${d.name}</div>
+        </div>
+        <span class="sc-sector">${d.sector}</span>
+      </div>
+      <div class="sc-price-row">
+        <span class="sc-price">${cur}${d.price.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+        <span class="${chgClass}" style="font-size:.82rem;font-weight:600">${chgSign}${d.chg.toFixed(2)}%</span>
+      </div>
+      ${d.range ? `<div style="margin:6px 0">
+        <div style="display:flex;align-items:center;gap:5px">
+          <span style="font-size:.6rem;color:var(--text3)">${cur}${d.range.low.toFixed(0)}</span>
+          <div style="flex:1;height:5px;background:var(--surface2);border-radius:3px;position:relative;min-width:40px">
+            <div style="position:absolute;left:0;top:0;height:5px;border-radius:3px;width:${rPct}%;background:${rColor}"></div>
+            <div style="position:absolute;left:${rPct}%;top:-3px;width:10px;height:11px;border-radius:50%;background:var(--text);transform:translateX(-50%)"></div>
+          </div>
+          <span style="font-size:.6rem;color:var(--text3)">${cur}${d.range.high.toFixed(0)}</span>
+        </div>
+      </div>` : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <span class="sc-mktcap" style="font-size:.65rem;color:var(--text3)">${d.sector}</span>
+        ${d.drawdown!=null?`<span class="sc-drawdown dn">${d.drawdown.toFixed(1)}% from high</span>`:''}
+      </div>
+    </a>`;
+  }).join('');
+
+  if(!screenRendered) {
+    // Drawdown chart
+    const ddSorted = [...data].sort((a,b) => a.drawdown - b.drawdown);
+    const ddH = Math.max(360, ddSorted.length * 18);
+    Plotly.newPlot('ch-screen-movement', [{
+      y: ddSorted.map(d => d.ticker),
+      x: ddSorted.map(d => d.drawdown),
+      type: 'bar', orientation: 'h',
+      marker: {color: ddSorted.map(d => d.drawdown > -10 ? 'rgba(63,185,80,.75)' : d.drawdown > -20 ? 'rgba(227,179,65,.75)' : 'rgba(248,81,73,.75)')},
+      text: ddSorted.map(d => d.drawdown.toFixed(1)+'%'),
+      textposition: 'outside',
+      textfont: {size: 9, color: '#8b949e'},
+      hovertemplate: '<b>%{y}</b><br>From 52W High: %{x:.1f}%<extra></extra>'
+    }], {
+      ...LY, height: ddH,
+      xaxis: {...LY.xaxis, title: 'Distance from 52-Week High (%)', zeroline: true, zerolinecolor:'#30363d'},
+      yaxis: {...LY.yaxis, tickfont: {size: 10}, autorange: true},
+      margin: {t: 8, r: 60, b: 48, l: 70}
+    }, CFG);
+    document.getElementById('ch-screen-movement').style.height = ddH + 'px';
+
+    // 52W Range Position chart
+    const rangeSorted = [...data].filter(d => d.rangePct!=null).sort((a,b) => a.rangePct - b.rangePct);
+    const rH = Math.max(360, rangeSorted.length * 18);
+    Plotly.newPlot('ch-screen-range', [{
+      y: rangeSorted.map(d => d.ticker),
+      x: rangeSorted.map(d => d.rangePct),
+      type: 'bar', orientation: 'h',
+      marker: {color: rangeSorted.map(d => d.rangePct>60 ? 'rgba(63,185,80,.75)' : d.rangePct<30 ? 'rgba(248,81,73,.75)' : 'rgba(88,166,255,.75)')},
+      text: rangeSorted.map(d => d.rangePct.toFixed(0)+'%'),
+      textposition: 'outside',
+      textfont: {size: 9, color: '#8b949e'},
+      hovertemplate: '<b>%{y}</b><br>52W Range: %{x:.1f}%<extra></extra>'
+    }], {
+      ...LY, height: rH,
+      xaxis: {...LY.xaxis, title: '52-Week Range Position (%)', range: [0, 110], zeroline: true},
+      yaxis: {...LY.yaxis, tickfont: {size: 10}, autorange: true},
+      margin: {t: 8, r: 50, b: 48, l: 70},
+      shapes: [{type:'line',x0:50,x1:50,y0:-0.5,y1:rangeSorted.length-0.5,line:{color:'#e3b341',width:1,dash:'dash'}}]
+    }, CFG);
+    document.getElementById('ch-screen-range').style.height = rH + 'px';
+
+    // Daily Change bar chart instead of mkt cap pie (more useful)
+    const chgSorted = [...data].sort((a,b) => a.chg - b.chg);
+    const cH = Math.max(360, chgSorted.length * 18);
+    Plotly.newPlot('ch-screen-mktcap', [{
+      y: chgSorted.map(d => d.ticker),
+      x: chgSorted.map(d => d.chg),
+      type: 'bar', orientation: 'h',
+      marker: {color: chgSorted.map(d => d.chg >= 0 ? 'rgba(63,185,80,.75)' : 'rgba(248,81,73,.75)')},
+      text: chgSorted.map(d => (d.chg>=0?'+':'')+d.chg.toFixed(2)+'%'),
+      textposition: 'outside',
+      textfont: {size: 9, color: '#8b949e'},
+      hovertemplate: '<b>%{y}</b><br>Change: %{x:.2f}%<extra></extra>'
+    }], {
+      ...LY, height: cH,
+      xaxis: {...LY.xaxis, title: 'Daily Change (%)', zeroline: true, zerolinecolor:'#484f58'},
+      yaxis: {...LY.yaxis, tickfont: {size: 10}, autorange: true},
+      margin: {t: 8, r: 55, b: 48, l: 70}
+    }, CFG);
+    document.getElementById('ch-screen-mktcap').style.height = cH + 'px';
+
+    screenRendered = true;
+  }
+
+  if(!screenNewsFetched) {
+    screenNewsFetched = true;
+    fetchScreenNews();
+  }
+
+  if(!screenRSIFetched) fetchScreenRSI();
+
+  renderScreenLinks();
+}
+
+async function fetchScreenNews() {
+  const el = document.getElementById('screen-news');
+  const allItems = [];
+  const topTickers = SCREEN_WL.filter(d => !d.t.includes('.')).slice(0, 20);
+
+  const batchSize = 4;
+  for(let i = 0; i < topTickers.length; i += batchSize) {
+    const batch = topTickers.slice(i, i + batchSize);
+    const promises = batch.map(async ({t, n}) => {
+      try {
+        const q = encodeURIComponent(t + ' ' + n.split(' ')[0] + ' stock');
+        const rssUrl = `https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en`;
+        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+        const res = await fetch(apiUrl);
+        if(!res.ok) return [];
+        const data = await res.json();
+        if(data.status !== 'ok' || !data.items) return [];
+        return data.items.slice(0, 2).map(item => ({
+          ticker: t, name: n,
+          title: item.title, link: item.link,
+          pubDate: item.pubDate, source: item.author || 'Google News'
+        }));
+      } catch { return []; }
+    });
+    const results = await Promise.all(promises);
+    results.forEach(r => allItems.push(...r));
+    if(allItems.length > 0 && i === 0) {
+      renderNewsItems(el, allItems, true);
+    }
+  }
+
+  if(allItems.length === 0) {
+    el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text3)">
+      <div style="font-size:1.2rem;margin-bottom:8px">📰</div>
+      <div>Unable to fetch live news. Click the ticker links below for headlines.</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px">
+        ${SCREEN_WL.slice(0,20).map(d => `<a href="https://news.google.com/search?q=${encodeURIComponent(d.t+' stock')}" target="_blank" rel="noopener" style="color:var(--blue);font-size:.8rem;text-decoration:none;padding:4px 10px;background:var(--surface2);border-radius:4px">${d.t}</a>`).join('')}
+      </div>
+    </div>`;
+    return;
+  }
+  renderNewsItems(el, allItems, false);
+}
+
+function renderNewsItems(el, items, partial) {
+  items.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
+  const shown = items.slice(0, 40);
+  el.innerHTML = shown.map(item => {
+    const ago = getTimeAgo(new Date(item.pubDate));
+    return `<div class="news-item">
+      <div style="flex:0 0 auto;padding-top:2px"><span class="news-tag">${item.ticker}</span></div>
+      <div>
+        <a href="${item.link}" target="_blank" rel="noopener">${item.title}</a>
+        <div class="news-meta">${item.source} · ${ago}</div>
+      </div>
+    </div>`;
+  }).join('') + (partial ? '<div class="news-loading" style="padding:12px"><span class="spinner"></span> Loading more...</div>' : '');
+}
+
+function getTimeAgo(date) {
+  const now = new Date();
+  const diff = now - date;
+  const mins = Math.floor(diff / 60000);
+  if(mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins / 60);
+  if(hrs < 24) return hrs + 'h ago';
+  const days = Math.floor(hrs / 24);
+  if(days < 7) return days + 'd ago';
+  return date.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+}
+
+function renderScreenLinks() {
+  const el = document.getElementById('screen-links');
+  el.innerHTML = `<div class="screen-links-grid">${SCREEN_WL.map(d => {
+    const links = [
+      {icon:'📊', label:'Yahoo Finance', url:`https://finance.yahoo.com/quote/${d.t}`},
+      {icon:'📈', label:'TradingView', url:`https://www.tradingview.com/symbols/${d.t}`},
+      {icon:'📰', label:'Google News', url:`https://news.google.com/search?q=${encodeURIComponent(d.t+' stock')}`},
+    ];
+    return `<div style="display:flex;flex-direction:column;gap:4px">
+      <div style="font-size:.72rem;font-weight:700;color:var(--blue);letter-spacing:.05em;padding:4px 0">${d.t} — ${d.n}</div>
+      ${links.map(l => `<a href="${l.url}" target="_blank" rel="noopener" class="screen-link"><span class="screen-link-icon">${l.icon}</span>${l.label}</a>`).join('')}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── INIT ─────────────────────────────────────────────
+initHeader();
+renderOverview();
+renderSnapshot();
+populateTickers();
+renderTicker();
+computePriceAnalytics();
+</script>
+</body>
+</html>
