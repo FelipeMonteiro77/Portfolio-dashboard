@@ -33,6 +33,18 @@ body { font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: 20px; padding: 4px 12px; font-size: 0.75rem; color: var(--text2);
 }
+.refresh-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--blue); font-size: .78rem; font-weight: 600; cursor: pointer;
+  transition: all .2s; white-space: nowrap;
+}
+.refresh-btn:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+.refresh-btn.loading { opacity: .6; pointer-events: none; }
+.refresh-btn .spin { display: inline-block; animation: spin .8s linear infinite; }
+.refresh-status {
+  font-size: .68rem; color: var(--text3); white-space: nowrap;
+}
 
 /* ── TABS ── */
 .tab-bar {
@@ -214,7 +226,13 @@ select[multiple] option:checked { background: rgba(88,166,255,.2); color: var(--
       <div class="header-sub" id="hdr-sub">Loading…</div>
     </div>
   </div>
-  <div id="hdr-badges" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div id="hdr-badges" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    <button class="refresh-btn" id="refresh-btn" onclick="refreshLivePrices()">
+      <span id="refresh-icon">🔄</span> Refresh Prices
+    </button>
+    <span class="refresh-status" id="refresh-status"></span>
+  </div>
 </div>
 
 <div class="tab-bar">
@@ -620,6 +638,91 @@ const LW = D.latest_weights;
 const PC = D.price_changes;
 
 let chartMode = 'dual';
+let lastRefresh = null;
+
+// ── Live Price Refresh ─────────────────────────────────
+function getAllTickers() {
+  const tickers = new Set();
+  VAL_POSITIONS.forEach(p => { if(!p.ticker.includes(' ')) tickers.add(p.ticker); });
+  SCREEN_WL.forEach(d => { if(!d.t.includes('.') && !d.t.includes(' ')) tickers.add(d.t); });
+  return [...tickers];
+}
+
+async function fetchYahooPrice(ticker) {
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
+    const res = await fetch(url);
+    if(!res.ok) return null;
+    const json = await res.json();
+    const meta = json?.chart?.result?.[0]?.meta;
+    if(!meta) return null;
+    return {
+      price: meta.regularMarketPrice,
+      prevClose: meta.chartPreviousClose || meta.previousClose,
+      high: meta.regularMarketDayHigh,
+      low: meta.regularMarketDayLow,
+    };
+  } catch { return null; }
+}
+
+async function refreshLivePrices() {
+  const btn = document.getElementById('refresh-btn');
+  const icon = document.getElementById('refresh-icon');
+  const status = document.getElementById('refresh-status');
+  btn.classList.add('loading');
+  icon.innerHTML = '<span class="spin">🔄</span>';
+  status.textContent = 'Fetching prices…';
+
+  const tickers = getAllTickers();
+  let updated = 0, failed = 0;
+  const batchSize = 6;
+
+  for(let i = 0; i < tickers.length; i += batchSize) {
+    const batch = tickers.slice(i, i + batchSize);
+    status.textContent = `Fetching ${i+1}–${Math.min(i+batchSize, tickers.length)} of ${tickers.length}…`;
+
+    const results = await Promise.all(batch.map(async t => {
+      const data = await fetchYahooPrice(t);
+      return { ticker: t, data };
+    }));
+
+    results.forEach(({ticker, data}) => {
+      if(!data || !data.price) { failed++; return; }
+      updated++;
+
+      if(VAL_PRICES.hasOwnProperty(ticker)) {
+        VAL_PRICES[ticker] = data.price;
+      }
+
+      const sw = SCREEN_WL.find(d => d.t === ticker);
+      if(sw) {
+        const oldPrice = sw.p;
+        sw.p = data.price;
+        if(data.prevClose) {
+          sw.chg = ((data.price - data.prevClose) / data.prevClose * 100);
+        }
+      }
+    });
+  }
+
+  valRendered = false;
+  screenRendered = false;
+  screenRSIFetched = false;
+
+  const activeTab = document.querySelector('.tab.active');
+  const tabName = activeTab ? activeTab.textContent.trim() : '';
+  if(tabName.includes('Valuation')) renderValuation();
+  else if(tabName.includes('Screen')) renderScreen();
+
+  lastRefresh = new Date();
+  const timeStr = lastRefresh.toLocaleTimeString('en', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  status.textContent = `✓ ${updated} updated, ${failed} failed · ${timeStr}`;
+  status.style.color = failed > updated ? 'var(--red)' : 'var(--green)';
+  btn.classList.remove('loading');
+  icon.innerHTML = '🔄';
+
+  setTimeout(() => { status.style.color = 'var(--text3)'; }, 3000);
+}
 
 // ── Theme ──────────────────────────────────────────────
 const LY = {
