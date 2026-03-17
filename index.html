@@ -175,19 +175,22 @@ select[multiple] option:checked { background: rgba(88,166,255,.2); color: var(--
 .tab-bar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 /* ── SCREEN TAB ── */
-.screen-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-  padding: 14px 16px; transition: border-color .2s, transform .15s;
+.screen-tbl { width: 100%; border-collapse: collapse; font-size: .78rem; }
+.screen-tbl th {
+  position: sticky; top: 0; background: var(--surface); color: var(--text3);
+  font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+  padding: 8px 10px; border-bottom: 2px solid var(--border); cursor: pointer;
+  white-space: nowrap; user-select: none; transition: color .15s;
 }
-.screen-card:hover { border-color: var(--blue); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.3); }
-.sc-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.sc-ticker { font-weight: 700; font-size: .95rem; color: var(--blue); letter-spacing: .03em; }
-.sc-name { font-size: .7rem; color: var(--text3); margin-top: 1px; }
-.sc-sector { font-size: .62rem; color: var(--text3); background: var(--surface2); padding: 2px 6px; border-radius: 3px; white-space: nowrap; }
-.sc-price-row { display: flex; align-items: baseline; gap: 8px; margin: 6px 0 8px; }
-.sc-price { font-size: 1.3rem; font-weight: 700; }
-.sc-mktcap { font-size: .68rem; color: var(--text3); margin-top: 6px; }
-.sc-drawdown { font-size: .72rem; font-weight: 600; margin-top: 4px; }
+.screen-tbl th:hover { color: var(--blue); }
+.screen-tbl th.sc-sort-active { color: var(--blue); }
+.screen-tbl td { padding: 6px 10px; border-bottom: 1px solid var(--border2); white-space: nowrap; }
+.screen-tbl tr { transition: background .12s; }
+.screen-tbl tbody tr:hover { background: var(--surface2); cursor: pointer; }
+.sc-range-bar { display:inline-flex; align-items:center; gap:4px; min-width:120px; }
+.sc-range-track { flex:1; height:4px; background:var(--surface2); border-radius:2px; position:relative; min-width:50px; }
+.sc-range-fill { position:absolute; left:0; top:0; height:4px; border-radius:2px; }
+.sc-range-dot { position:absolute; top:-3px; width:8px; height:10px; border-radius:50%; background:var(--text); transform:translateX(-50%); }
 .news-item { padding: 12px 0; border-bottom: 1px solid var(--border2); display: flex; gap: 10px; }
 .news-item:last-child { border-bottom: none; }
 .news-item a { color: var(--text); text-decoration: none; font-weight: 500; font-size: .82rem; line-height: 1.4; }
@@ -575,10 +578,10 @@ select[multiple] option:checked { background: rgba(88,166,255,.2); color: var(--
 
   <div class="chart-card">
     <div class="chart-card-header">
-      <div class="chart-card-title">Core Positions Monitor</div>
-      <div class="chart-card-sub">60 watchlist names · Live pricing · 52-week ranges · Click card for Yahoo Finance</div>
+      <div class="chart-card-title">Watchlist</div>
+      <div class="chart-card-sub">Click any row to open Yahoo Finance · Click column headers to sort</div>
     </div>
-    <div id="screen-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:8px 0"></div>
+    <div id="screen-table-wrap" style="overflow-x:auto;padding:0 4px 8px"></div>
   </div>
 
   <div class="chart-card">
@@ -649,20 +652,28 @@ function getAllTickers() {
 }
 
 async function fetchYahooPrice(ticker) {
-  try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
-    const res = await fetch(url);
-    if(!res.ok) return null;
-    const json = await res.json();
-    const meta = json?.chart?.result?.[0]?.meta;
-    if(!meta) return null;
-    return {
-      price: meta.regularMarketPrice,
-      prevClose: meta.chartPreviousClose || meta.previousClose,
-      high: meta.regularMarketDayHigh,
-      low: meta.regularMarketDayLow,
-    };
-  } catch { return null; }
+  const proxies = [
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    url => url,
+  ];
+  const base = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=5d`;
+  for(const proxy of proxies) {
+    try {
+      const res = await fetch(proxy(base), {signal: AbortSignal.timeout(8000)});
+      if(!res.ok) continue;
+      const json = await res.json();
+      const meta = json?.chart?.result?.[0]?.meta;
+      if(!meta || !meta.regularMarketPrice) continue;
+      return {
+        price: meta.regularMarketPrice,
+        prevClose: meta.chartPreviousClose || meta.previousClose,
+        high: meta.regularMarketDayHigh,
+        low: meta.regularMarketDayLow,
+      };
+    } catch { continue; }
+  }
+  return null;
 }
 
 async function refreshLivePrices() {
@@ -1853,6 +1864,8 @@ const SCREEN_WL = [
 let screenRendered = false;
 let screenNewsFetched = false;
 let screenFilter = 'all';
+let screenSortKey = 'chg';
+let screenSortAsc = false;
 const screenRSI = {};
 let screenRSIFetched = false;
 
@@ -1895,18 +1908,25 @@ async function fetchScreenRSI() {
   for(let i = 0; i < missing.length; i += batchSize) {
     const batch = missing.slice(i, i + batchSize);
     const promises = batch.map(async ({t}) => {
-      try {
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${t}?interval=1d&range=1mo`;
-        const res = await fetch(url);
-        if(!res.ok) return;
-        const json = await res.json();
-        const closes = json?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
-        if(closes) {
-          const valid = closes.filter(c => c != null);
-          const rsi = calcRSI(valid);
-          if(rsi != null) screenRSI[t] = rsi;
-        }
-      } catch {}
+      const base = `https://query1.finance.yahoo.com/v8/finance/chart/${t}?interval=1d&range=1mo`;
+      const proxies = [
+        u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+        u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+        u => u,
+      ];
+      for(const proxy of proxies) {
+        try {
+          const res = await fetch(proxy(base), {signal: AbortSignal.timeout(8000)});
+          if(!res.ok) continue;
+          const json = await res.json();
+          const closes = json?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
+          if(closes) {
+            const valid = closes.filter(c => c != null);
+            const rsi = calcRSI(valid);
+            if(rsi != null) { screenRSI[t] = rsi; return; }
+          }
+        } catch { continue; }
+      }
     });
     await Promise.all(promises);
     refreshScreenRSIBadges();
@@ -1945,6 +1965,13 @@ function setScreenFilter(f, el) {
   renderScreen();
 }
 
+function sortScreen(key) {
+  if(screenSortKey === key) screenSortAsc = !screenSortAsc;
+  else { screenSortKey = key; screenSortAsc = key === 'ticker'; }
+  screenRendered = false;
+  renderScreen();
+}
+
 function renderScreen() {
   const sectors = {
     all: () => true,
@@ -1964,9 +1991,20 @@ function renderScreen() {
   const filterFn = sectors[screenFilter] || sectors.all;
   const data = allData.filter(filterFn);
 
-  const sorted = [...data].sort((a,b) => b.chg - a.chg);
-  const topG = sorted[0];
-  const topL = sorted[sorted.length - 1];
+  const sortFns = {
+    ticker: (a,b) => a.ticker.localeCompare(b.ticker),
+    price: (a,b) => a.price - b.price,
+    chg: (a,b) => a.chg - b.chg,
+    rsi: (a,b) => (screenRSI[a.ticker]??50) - (screenRSI[b.ticker]??50),
+    drawdown: (a,b) => a.drawdown - b.drawdown,
+    rangePct: (a,b) => (a.rangePct??0) - (b.rangePct??0),
+  };
+  const cmp = sortFns[screenSortKey] || sortFns.chg;
+  const dir = screenSortAsc ? 1 : -1;
+  const sorted = [...data].sort((a,b) => cmp(a,b) * dir);
+  const byChg = [...data].sort((a,b) => b.chg - a.chg);
+  const topG = byChg[0];
+  const topL = byChg[byChg.length - 1];
   const avgDD = data.reduce((s,d) => s + d.drawdown, 0) / data.length;
   const greenCount = data.filter(d => d.chg > 0).length;
   const redCount = data.filter(d => d.chg < 0).length;
@@ -2004,47 +2042,51 @@ function renderScreen() {
     document.getElementById('screen-kpis').parentNode.insertBefore(filterBar, document.getElementById('screen-kpis').nextSibling);
   }
 
-  // Stock cards
-  document.getElementById('screen-cards').innerHTML = sorted.map(d => {
+  // Sortable table
+  const wrap = document.getElementById('screen-table-wrap');
+  const arrows = k => k === screenSortKey ? (screenSortAsc ? ' ▲' : ' ▼') : '';
+  const ac = k => k === screenSortKey ? ' sc-sort-active' : '';
+  wrap.innerHTML = `<table class="screen-tbl"><thead><tr>
+    <th class="${ac('ticker')}" onclick="sortScreen('ticker')">#${arrows('ticker')}</th>
+    <th class="${ac('ticker')}" onclick="sortScreen('ticker')">Ticker${arrows('ticker')}</th>
+    <th>Name</th>
+    <th style="text-align:right" class="${ac('price')}" onclick="sortScreen('price')">Price${arrows('price')}</th>
+    <th style="text-align:right" class="${ac('chg')}" onclick="sortScreen('chg')">Chg %${arrows('chg')}</th>
+    <th style="text-align:center" class="${ac('rsi')}" onclick="sortScreen('rsi')">RSI(14)${arrows('rsi')}</th>
+    <th style="min-width:140px">52W Range</th>
+    <th style="text-align:right" class="${ac('drawdown')}" onclick="sortScreen('drawdown')">From High${arrows('drawdown')}</th>
+    <th style="text-align:right" class="${ac('rangePct')}" onclick="sortScreen('rangePct')">Range %${arrows('rangePct')}</th>
+    <th>Sector</th>
+  </tr></thead><tbody>${sorted.map((d,i) => {
     const rPct = d.rangePct != null ? Math.max(0,Math.min(100,d.rangePct)).toFixed(0) : null;
     const rColor = rPct ? (rPct>60?'var(--green)':rPct<30?'var(--red)':'var(--orange)') : '';
     const chgClass = d.chg >= 0 ? 'up' : 'dn';
     const chgSign = d.chg >= 0 ? '+' : '';
     const isBRL = d.ticker === 'CHIP11.SA';
     const cur = isBRL ? 'R$' : '$';
-
     const rsiVal = screenRSI[d.ticker];
     const rsiCls = rsiClass(rsiVal);
     const rsiTxt = rsiLabel(rsiVal);
-
-    return `<a href="https://finance.yahoo.com/quote/${d.ticker}" target="_blank" rel="noopener" class="screen-card" style="text-decoration:none;color:inherit">
-      <div class="sc-head">
-        <div>
-          <div class="sc-ticker">${d.ticker} <span class="rsi-badge ${rsiCls}" data-rsi-ticker="${d.ticker}">RSI ${rsiTxt}</span></div>
-          <div class="sc-name">${d.name}</div>
+    return `<tr onclick="window.open('https://finance.yahoo.com/quote/${d.ticker}','_blank')">
+      <td style="color:var(--text3);font-size:.68rem;text-align:center">${i+1}</td>
+      <td style="font-weight:700;color:var(--blue);font-size:.82rem">${d.ticker}</td>
+      <td style="color:var(--text2);font-size:.72rem;max-width:150px;overflow:hidden;text-overflow:ellipsis">${d.name}</td>
+      <td style="text-align:right;font-weight:600">${cur}${d.price.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td style="text-align:right;font-weight:600" class="${chgClass}">${chgSign}${d.chg.toFixed(2)}%</td>
+      <td style="text-align:center"><span class="rsi-badge ${rsiCls}" data-rsi-ticker="${d.ticker}">RSI ${rsiTxt}</span></td>
+      <td>${d.range ? `<div class="sc-range-bar">
+        <span style="font-size:.6rem;color:var(--text3)">${cur}${d.range.low.toFixed(0)}</span>
+        <div class="sc-range-track">
+          <div class="sc-range-fill" style="width:${rPct}%;background:${rColor}"></div>
+          <div class="sc-range-dot" style="left:${rPct}%"></div>
         </div>
-        <span class="sc-sector">${d.sector}</span>
-      </div>
-      <div class="sc-price-row">
-        <span class="sc-price">${cur}${d.price.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
-        <span class="${chgClass}" style="font-size:.82rem;font-weight:600">${chgSign}${d.chg.toFixed(2)}%</span>
-      </div>
-      ${d.range ? `<div style="margin:6px 0">
-        <div style="display:flex;align-items:center;gap:5px">
-          <span style="font-size:.6rem;color:var(--text3)">${cur}${d.range.low.toFixed(0)}</span>
-          <div style="flex:1;height:5px;background:var(--surface2);border-radius:3px;position:relative;min-width:40px">
-            <div style="position:absolute;left:0;top:0;height:5px;border-radius:3px;width:${rPct}%;background:${rColor}"></div>
-            <div style="position:absolute;left:${rPct}%;top:-3px;width:10px;height:11px;border-radius:50%;background:var(--text);transform:translateX(-50%)"></div>
-          </div>
-          <span style="font-size:.6rem;color:var(--text3)">${cur}${d.range.high.toFixed(0)}</span>
-        </div>
-      </div>` : ''}
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-        <span class="sc-mktcap" style="font-size:.65rem;color:var(--text3)">${d.sector}</span>
-        ${d.drawdown!=null?`<span class="sc-drawdown dn">${d.drawdown.toFixed(1)}% from high</span>`:''}
-      </div>
-    </a>`;
-  }).join('');
+        <span style="font-size:.6rem;color:var(--text3)">${cur}${d.range.high.toFixed(0)}</span>
+      </div>` : '—'}</td>
+      <td style="text-align:right;font-weight:600" class="dn">${d.drawdown!=null?d.drawdown.toFixed(1)+'%':'—'}</td>
+      <td style="text-align:right;font-weight:600;color:${rColor}">${rPct!=null?rPct+'%':'—'}</td>
+      <td style="font-size:.65rem;color:var(--text3)">${d.sector}</td>
+    </tr>`;
+  }).join('')}</tbody></table>`;
 
   if(!screenRendered) {
     // Drawdown chart
