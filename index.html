@@ -2734,7 +2734,7 @@ const X_LISTS = {
 let nfXFilter = '';
 let nfXCurrentList = 'all';
 let nfXPage = 0;
-const NF_X_PER_PAGE = 4;
+const NF_X_QUERY_ACCOUNTS = 12;
 
 function renderTwitterTags() {
   const el = document.getElementById('nf-twitter-accounts');
@@ -2773,40 +2773,81 @@ function filterXAccounts(q) {
 
 function setXPage(p) {
   const accts = getActiveXAccounts();
-  const maxPage = Math.max(0, Math.ceil(accts.length / NF_X_PER_PAGE) - 1);
+  const maxPage = Math.max(0, Math.ceil(accts.length / NF_X_QUERY_ACCOUNTS) - 1);
   nfXPage = Math.max(0, Math.min(p, maxPage));
   renderTwitterEmbeds();
+}
+
+function xSinceDate(daysBack = 1) {
+  const d = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
+  return d.toISOString().slice(0, 10);
+}
+
+function buildXUnifiedQuery(handles) {
+  if (!handles.length) return '';
+  const fromBlock = handles.map(h => `from:${h}`).join(' OR ');
+  const since = xSinceDate(1);
+  return `(${fromBlock}) -is:retweet -is:reply since:${since}`;
 }
 
 function renderTwitterEmbeds() {
   const el = document.getElementById('nf-twitter-feeds');
   const accts = getActiveXAccounts();
   const total = accts.length;
-  const maxPage = Math.max(0, Math.ceil(total / NF_X_PER_PAGE) - 1);
-  const start = nfXPage * NF_X_PER_PAGE;
-  const slice = accts.slice(start, start + NF_X_PER_PAGE);
+  const maxPage = Math.max(0, Math.ceil(total / NF_X_QUERY_ACCOUNTS) - 1);
+  const start = nfXPage * NF_X_QUERY_ACCOUNTS;
+  const slice = accts.slice(start, start + NF_X_QUERY_ACCOUNTS);
+  const query = buildXUnifiedQuery(slice);
+  const searchHref = `https://twitter.com/search?q=${encodeURIComponent(query)}&f=live`;
 
   document.getElementById('nf-x-count').textContent = `${total} accounts`;
   const listLabel = nfXCurrentList === 'all' ? 'Top 36 accounts' : nfXCurrentList.charAt(0).toUpperCase()+nfXCurrentList.slice(1);
-  document.getElementById('nf-x-sub').textContent = `${listLabel} — showing ${start+1}-${Math.min(start+NF_X_PER_PAGE,total)} of ${total}`;
+  document.getElementById('nf-x-sub').textContent = `${listLabel} — últimas 24h (ordem cronológica)`;
+
+  if (!total) {
+    el.innerHTML = `
+      <div style="padding:14px 10px;color:var(--text3);font-size:.78rem">
+        No accounts found for this filter.
+      </div>
+    `;
+    return;
+  }
 
   el.innerHTML = `
-    ${slice.map(h => `
-      <div class="nf-x-card" style="margin-bottom:6px">
-        <div class="nf-x-header" style="display:flex;align-items:center;gap:6px;padding:4px 0">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--text)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          <a href="https://x.com/${h}" target="_blank" rel="noopener" class="nf-x-handle">@${h}</a>
+    <div class="nf-x-card" style="margin-bottom:6px;padding:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+        <div style="font-size:.7rem;color:var(--text3)">
+          Unified timeline from ${slice.length} accounts (${start + 1}-${Math.min(start + NF_X_QUERY_ACCOUNTS, total)} of ${total})
         </div>
-        <a class="twitter-timeline" data-theme="dark" data-chrome="noheader nofooter noborders transparent" data-tweet-limit="3" data-height="420" href="https://twitter.com/${h}">Loading @${h}...</a>
+        <a href="${searchHref}" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--blue)">Open on X</a>
       </div>
-    `).join('')}
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">
+        ${slice.map(h => `<span style="font-size:.64rem;color:var(--text2);background:var(--surface2);padding:2px 6px;border-radius:999px">@${h}</span>`).join('')}
+      </div>
+      <a class="twitter-timeline"
+         data-theme="dark"
+         data-chrome="noheader nofooter noborders transparent"
+         data-height="680"
+         href="${searchHref}">
+        Loading unified X timeline...
+      </a>
+    </div>
     <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:8px;padding-bottom:8px">
       <button onclick="setXPage(${nfXPage - 1})" ${nfXPage===0?'disabled':''} style="padding:4px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.72rem;cursor:pointer">&laquo; Prev</button>
       <span style="font-size:.7rem;color:var(--text3)">${nfXPage+1} / ${maxPage+1}</span>
       <button onclick="setXPage(${nfXPage + 1})" ${nfXPage>=maxPage?'disabled':''} style="padding:4px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.72rem;cursor:pointer">Next &raquo;</button>
     </div>
   `;
-  if(window.twttr && twttr.widgets) twttr.widgets.load(el);
+  if(window.twttr && twttr.widgets) {
+    twttr.widgets.load(el);
+  } else {
+    el.innerHTML += `
+      <div style="margin-top:8px;font-size:.68rem;color:var(--text3)">
+        If the widget does not load, open directly:
+        <a href="${searchHref}" target="_blank" rel="noopener" style="color:var(--blue)">X Live Search</a>
+      </div>
+    `;
+  }
 }
 
 async function fetchNewsFeedNews() {
