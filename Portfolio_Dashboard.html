@@ -270,6 +270,20 @@ select[multiple] option:checked { background: rgba(88,166,255,.2); color: var(--
 .br-email-subj { flex: 1; color: var(--text); font-weight: 500; line-height: 1.35; }
 .br-email-sender { flex: 0 0 150px; color: var(--text3); font-size: .68rem; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 800px) { .br-email-sender { display: none; } }
+.br-call-row { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border2); font-size:.78rem; }
+.br-call-row:last-child { border-bottom:none; }
+.br-call-date { flex:0 0 70px; font-weight:700; color:var(--orange); font-size:.72rem; font-family:monospace; }
+.br-call-time { flex:0 0 72px; color:var(--blue); font-size:.7rem; font-family:monospace; }
+.br-call-title { flex:1; color:var(--text); line-height:1.35; }
+.br-call-link { flex:0 0 auto; }
+.br-call-link a { color:var(--blue); font-size:.7rem; text-decoration:none; padding:3px 8px; border:1px solid var(--blue); border-radius:4px; white-space:nowrap; }
+.br-call-link a:hover { background:var(--blue); color:#fff; }
+.br-call-today { background:rgba(99,102,241,.07); border-radius:6px; padding:2px 6px; margin:-2px -6px; }
+.br-hl[data-expanded="true"] .br-hl-body { display:block; }
+.br-hl-body { display:none; margin-top:8px; padding-top:8px; border-top:1px solid var(--border2); font-size:.72rem; color:var(--text2); line-height:1.5; max-height:200px; overflow-y:auto; }
+.br-hl { cursor:pointer; transition: background .15s; }
+.br-hl:hover { background:var(--surface); }
+mark { background:rgba(99,102,241,.25); color:var(--text); border-radius:2px; padding:0 2px; }
 </style>
 </head>
 <body>
@@ -685,6 +699,16 @@ select[multiple] option:checked { background: rgba(88,166,255,.2); color: var(--
 
 <!-- ═══════════════════ BRIEFING ═══════════════════ -->
 <div class="panel" id="tab-briefing">
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+    <input id="br-search" type="text" placeholder="Buscar emails... (ticker, assunto, remetente)"
+      style="flex:1;min-width:240px;padding:8px 14px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.82rem"
+      oninput="filterBriefing(this.value)">
+    <select id="br-cat-filter" onchange="filterBriefing(document.getElementById('br-search').value)"
+      style="padding:8px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.78rem">
+      <option value="">Todas as categorias</option>
+    </select>
+    <span id="br-search-count" style="font-size:.68rem;color:var(--text3)"></span>
+  </div>
   <div class="grid-4" id="br-kpis"></div>
   <div class="chart-card">
     <div class="chart-card-header">
@@ -693,12 +717,35 @@ select[multiple] option:checked { background: rgba(88,166,255,.2); color: var(--
     </div>
     <div id="br-highlights"></div>
   </div>
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">📞 Calls & Events</div>
+        <div class="chart-card-sub">Chamadas, NDRs, webinars e eventos extraídos dos emails — com links de registro</div>
+      </div>
+      <div id="br-calls" style="max-height:500px;overflow-y:auto"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">📊 Distribuição por Tópico</div>
+        <div class="chart-card-sub">Breakdown dos 416 emails recebidos nas últimas 24h</div>
+      </div>
+      <div id="br-piechart" style="height:320px"></div>
+    </div>
+  </div>
   <div class="chart-card">
     <div class="chart-card-header">
       <div class="chart-card-title">Por Categoria</div>
       <div class="chart-card-sub">Todos os emails agrupados por tópico — clique para expandir</div>
     </div>
     <div id="br-categories"></div>
+  </div>
+  <div class="chart-card" id="br-search-results-card" style="display:none">
+    <div class="chart-card-header">
+      <div class="chart-card-title">🔍 Resultados da Busca</div>
+      <div class="chart-card-sub" id="br-search-sub"></div>
+    </div>
+    <div id="br-search-results"></div>
   </div>
 </div>
 
@@ -2426,11 +2473,52 @@ const BRIEFING = {"date":"2026-03-18","total":416,"highlights":[{"s":"NVDA GTC: 
 
 const CAT_ICONS = {'Geopolítica':'🌍','China':'🇨🇳','Macro':'📊','Política Brasil':'🇧🇷','Política LatAm':'🌎','Micro':'🏢','Interno':'🔒','Eventos':'📅','News':'📰','Alertas':'🔔','Outros':'📌','Pessoal':'👤'};
 const CAT_COLORS = {'Geopolítica':'var(--red)','China':'var(--orange)','Macro':'var(--blue)','Política Brasil':'var(--green)','Política LatAm':'var(--teal)','Micro':'var(--purple)','Interno':'var(--text3)','Eventos':'var(--orange)','News':'var(--blue)','Alertas':'var(--red)','Outros':'var(--text3)'};
+const CAT_HEX = {'Geopolítica':'#ef4444','China':'#f97316','Macro':'#6366f1','Política Brasil':'#22c55e','Política LatAm':'#14b8a6','Micro':'#a855f7','Interno':'#6b7280','Eventos':'#f97316','News':'#6366f1','Alertas':'#ef4444','Outros':'#6b7280'};
+
+const BR_CALLS = [
+  {t:"Tencent Post-Results Call — Kenneth Fong",time:"10:30AM ET",date:"3/18",link:"https://ubs-tencent-post-results-call-with-kenneth-fong-mar-2026.open-exchange.net/",src:"UBS"},
+  {t:"Kantan CEO: How AI Is Transforming Gaming",time:"",date:"3/18",link:"https://rsch.baml.com/events?aid=12332067&did=22513759",src:"BofA"},
+  {t:"MU Earnings Recap Call — Tim Arcuri",time:"8:30AM ET",date:"3/19",link:"https://ubs-earnings-recap-call-series-tim-arcuri.open-exchange.net/",src:"UBS"},
+  {t:"NVDA GTC, AVGO & Semis Bus Tour Recap — Vivek Arya",time:"8AM EST",date:"3/19",link:"https://rsch.baml.com/events?aid=12333171&did=22559725",src:"BofA"},
+  {t:"BofA OFC Key Takeaways — Vivek Arya & Tal Liani",time:"11AM EST",date:"3/19",link:"https://rsch.baml.com/events?aid=12333177&did=22562239",src:"BofA"},
+  {t:"AI & Infrastructure Software Expert/Channel Check — Koji Ikeda",time:"11AM ET",date:"3/19",link:"https://rsch.baml.com/conf?q=48vb7YYvUQiBRMB-6G-1ug",src:"BofA"},
+  {t:"MELI Power Seller — BEYOUNG CFO hosted by Bob Ford",time:"2PM EST",date:"3/19",link:"https://rsch.baml.com/events?aid=12332148&did=22519957",src:"BofA"},
+  {t:"ACN Group Lunch with CEO (NYC)",time:"",date:"3/19",link:null,src:"UBS"},
+  {t:"BABA & Tencent Callback Recap — Alex Liu, Joyce Ju",time:"8:30AM EST",date:"3/20",link:"https://rsch.baml.com/events?aid=12332811&did=22542232",src:"BofA"},
+  {t:"OFC Debrief with Dr. Vlad Kozlov (LightCounting) — Vivek & Tal",time:"10AM EST",date:"3/20",link:"https://rsch.baml.com/conf?q=gjlyMFo0Lz-BRMB-6G-1ug",src:"BofA"},
+  {t:"Quantum — Evaluating as an Asset Class (CEO of Quantum Insider)",time:"2PM ET",date:"3/20",link:"https://rsch.baml.com/r?q=VTarg!fObgrjoD5SyZZH3w",src:"BofA"},
+  {t:"OFC Takeaways — Tom O'Malley",time:"8:30AM ET",date:"3/23",link:"https://barclays.buythesell.com/Registration/EventAccess?id=50157",src:"Barclays"},
+  {t:"APH & TEL Product Portfolio Outlook (ex-TDY/APH Director)",time:"2PM ET",date:"3/23",link:"https://rsch.baml.com/r?q=DSBMOKicvkbjoD5SyZZH3w",src:"BofA"},
+  {t:"CVNA Head of IR/Cap Markets — TMT Summer Fridays Series",time:"3PM EST",date:"3/23",link:"https://rsch.baml.com/events?aid=12328389&did=22297723",src:"BofA"},
+  {t:"SanDisk CFO NDR — Ruplu Bhattacharya (NYC)",time:"",date:"3/25",link:"https://rsch.baml.com/events?aid=12333114&did=22544071",src:"BofA"},
+  {t:"Lunch with Jessica + Sports Media Exec David Levy (NYC)",time:"12PM EST",date:"3/25",link:"https://rsch.baml.com/events?aid=12330444&did=22376767",src:"BofA"},
+  {t:"Private Credit Deep Dive — Michael Goldstein, Co-Head Ares Credit",time:"10AM EST",date:"3/26",link:"https://rsch.baml.com/events?aid=12333474&did=22565305",src:"BofA"},
+  {t:"APH & TEL Deep Dive: A&D Portfolio (ex-Boeing/Northrop Director)",time:"2PM ET",date:"3/27",link:"https://rsch.baml.com/r?q=FomznCK!pwbjoD5SyZZH3w",src:"BofA"},
+  {t:"Lunch with Jessica + Don Garber, MLS Commissioner (NYC)",time:"12PM EST",date:"3/31",link:"https://rsch.baml.com/events?aid=12330042&did=22393417",src:"BofA"},
+  {t:"CRWD Non-Deal Roadshow — CAO & IR Team (NYC)",time:"",date:"4/1",link:"https://rsch.baml.com/events?aid=12332580&did=22528549",src:"BofA"},
+  {t:"Reddit (RDDT) Bull-Bear Roundtable — Justin Post & Brian Fenske",time:"11AM EST",date:"4/2",link:"https://rsch.baml.com/events?aid=12333441&did=22555609",src:"BofA"},
+  {t:"Pre-March FOMC Thoughts — Josh Schiffrin",time:"",date:"3/18",link:"https://marquee.gs.com/content/markets/themes/FOMC.html",src:"Goldman Sachs"},
+];
+
+function getAllBrEmails() {
+  const all = [];
+  BRIEFING.categories.forEach(g => {
+    g.items.forEach(e => all.push({...e, cat: g.cat}));
+  });
+  return all;
+}
 
 function renderBriefing() {
   if(brRendered) return;
   brRendered = true;
   const B = BRIEFING;
+
+  const sel = document.getElementById('br-cat-filter');
+  B.categories.forEach(g => {
+    const o = document.createElement('option');
+    o.value = g.cat; o.textContent = `${CAT_ICONS[g.cat]||''} ${g.cat} (${g.count})`;
+    sel.appendChild(o);
+  });
 
   const microCount = B.categories.find(c=>c.cat==='Micro')?.count||0;
   const macroCount = B.categories.find(c=>c.cat==='Macro')?.count||0;
@@ -2453,12 +2541,53 @@ function renderBriefing() {
   `;
 
   document.getElementById('br-highlights').innerHTML = B.highlights.map((h,i) => `
-    <div class="br-hl" style="border-left-color:${CAT_COLORS[h.cat]||'var(--blue)'}">
+    <div class="br-hl" style="border-left-color:${CAT_COLORS[h.cat]||'var(--blue)'}" onclick="toggleHlDetail(this)">
       <div class="br-hl-subj">${i+1}. ${h.s}</div>
       <div class="br-hl-meta">${CAT_ICONS[h.cat]||''} ${h.cat} · ${h.f} · ${h.d.slice(11)}</div>
     </div>
   `).join('');
 
+  renderBrCalls();
+  renderBrPieChart();
+  renderBrCategories();
+}
+
+function renderBrCalls() {
+  const today = '3/18';
+  document.getElementById('br-calls').innerHTML = BR_CALLS.map(c => {
+    const isToday = c.date === today;
+    return `<div class="br-call-row ${isToday?'br-call-today':''}">
+      <span class="br-call-date">${c.date}</span>
+      <span class="br-call-time">${c.time||'—'}</span>
+      <span class="br-call-title">${c.t}<span style="color:var(--text3);font-size:.65rem;margin-left:6px">${c.src}</span></span>
+      ${c.link ? `<span class="br-call-link"><a href="${c.link}" target="_blank" rel="noopener">Register</a></span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderBrPieChart() {
+  const B = BRIEFING;
+  const labels = B.categories.map(g => g.cat);
+  const values = B.categories.map(g => g.count);
+  const colors = B.categories.map(g => CAT_HEX[g.cat]||'#6b7280');
+  Plotly.newPlot('br-piechart', [{
+    type:'pie', labels, values,
+    marker:{colors},
+    textinfo:'label+value',
+    textfont:{size:11, color:'#e5e7eb'},
+    hoverinfo:'label+value+percent',
+    hole:.4,
+    sort:false,
+  }], {
+    paper_bgcolor:'transparent', plot_bgcolor:'transparent',
+    margin:{l:10,r:10,t:10,b:10},
+    showlegend:false,
+    font:{color:'#e5e7eb'},
+  }, {responsive:true, displayModeBar:false});
+}
+
+function renderBrCategories() {
+  const B = BRIEFING;
   document.getElementById('br-categories').innerHTML = B.categories.map((g,gi) => `
     <div>
       <div class="br-cat-header" onclick="toggleBrCat(${gi})">
@@ -2487,6 +2616,59 @@ function toggleBrCat(i) {
   const open = el.style.display === 'none';
   el.style.display = open ? 'block' : 'none';
   arr.classList.toggle('open', open);
+}
+
+function toggleHlDetail(el) {
+  const isOpen = el.getAttribute('data-expanded') === 'true';
+  el.setAttribute('data-expanded', isOpen ? 'false' : 'true');
+}
+
+function filterBriefing(query) {
+  const catFilter = document.getElementById('br-cat-filter').value;
+  const q = query.trim().toLowerCase();
+  const resultsCard = document.getElementById('br-search-results-card');
+  const resultsDiv = document.getElementById('br-search-results');
+  const countSpan = document.getElementById('br-search-count');
+
+  if (!q && !catFilter) {
+    resultsCard.style.display = 'none';
+    countSpan.textContent = '';
+    return;
+  }
+
+  const all = getAllBrEmails();
+  const filtered = all.filter(e => {
+    if (catFilter && e.cat !== catFilter) return false;
+    if (!q) return true;
+    const hay = (e.s + ' ' + e.f + ' ' + e.cat).toLowerCase();
+    return hay.includes(q);
+  });
+
+  countSpan.textContent = `${filtered.length} resultado${filtered.length!==1?'s':''}`;
+
+  if (filtered.length === 0) {
+    resultsCard.style.display = 'block';
+    document.getElementById('br-search-sub').textContent = `Nenhum resultado para "${q}"`;
+    resultsDiv.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3)">Nenhum email encontrado</div>';
+    return;
+  }
+
+  resultsCard.style.display = 'block';
+  document.getElementById('br-search-sub').textContent = `${filtered.length} emails ${catFilter?'em '+catFilter:''}${q?' contendo "'+q+'"':''}`;
+
+  function hl(text) {
+    if (!q) return text;
+    const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+    return text.replace(re, '<mark>$1</mark>');
+  }
+
+  resultsDiv.innerHTML = filtered.slice(0, 50).map(e => `
+    <div class="br-email-row">
+      <span class="br-email-time">${e.d.slice(11,16)}</span>
+      <span class="br-email-subj">${hl(e.s)} <span style="color:${CAT_HEX[e.cat]||'var(--text3)'};font-size:.62rem;margin-left:4px">${e.cat}</span></span>
+      <span class="br-email-sender">${hl(e.f)}</span>
+    </div>
+  `).join('') + (filtered.length > 50 ? `<div style="padding:6px 14px;font-size:.68rem;color:var(--text3)">+ ${filtered.length - 50} more results</div>` : '');
 }
 
 // ══════════════════════════════════════════════════════
