@@ -2676,7 +2676,7 @@ function filterBriefing(query) {
 // ══════════════════════════════════════════════════════
 let nfRendered = false;
 let nfNewsFetched = false;
-const nfTwitterAccounts = ['CapsEquity123'];
+const nfTwitterAccounts = ['CapsEquity123','bubbleboi','Konstantine','PatrickMoorhead','ProfessorPape','TechLayoffLover','illyquid','ayz_yzyz','OfficialLoganK','AnthropicAI','leopoldasch','martin_casado','BozRiverGuides','sk7037','eptwts','egeberkina','kloss_xyz','Hesamation','MengTo','jackfriks','godofprompt','EXM7777','karpathy','steipete','FundaAI','rakyll','MagicRatSF','rafaelobitten','joaomviso','ave_trader','Alchemist1320','Invesquotes','Starboy2079','BittelJulien','MacroAlf','dmwlff','Arronwei3n','qinzytech','MF_Camillus','Midnight_Captl','PhilipJohnston','DZhang50','nima_owji','crux_capital_','ItzSuds','IanAndrewsDC','CGasparino','deedydas','theaustinlyons','nickaturley','Similarweb','sainingxie','ayzddzya','GeminiApp','cazenove_uk','itsDanielWu','gradypb','ambriz_caryn94','fschuback','gdb','LisaSu','JulianKlymochko','patrick_oshag','insane_analyst','dalibali2','nvidianewsroom','natolambert','DanielTNiles','SportMDAnalysis','QQ_Timmy','vidushi_law','DavidSacks','patrickc','shengjia_zhao','coatuemgmt','IntelProMUltra','TBU12345678','Srasgon','natfriedman','alexandr_wang','TheOwnersEquity','TMTBreakout','PauloMacro','rwang07','sprucepointcap','Citrini7','akramsrazor','ericschmidt','Pontifex','TheTranscript_','bchesky','CramerTracker','auren','knowledge_vital','NickTimiraos','RealJimChanos','InvestSpecial','chamath','TrumpDailyPosts','SecScottBessent','realDonaldTrump','AlphaSenseInc','Restructuring__','hfreflection','rustybrick','emollick','GavinSBaker','RadnorCapital','MarvellTech','bgurley','adcock_brett','RihardJarc','isafulf','AravSrinivas','pmarca','altcap','FredaDuan','victor207755822','deepseek_ai','AnushElangovan','DylanOnChips','theinformation','sama','trendforce','ChipsandWafers','jukan05','mvcinvesting','lithos_graphein','ResearchQf','techfund1','TheNextPlatform','SemiEngineering','HPC_Guru','The_AI_Investor','StockMKTNewz','fabknowledge','markgurman','dnystedt','benthompson','stratechery','NateSilver538','viggy_krishnan','mingchikuo','wallstengine','techinsightsinc','Quartr_App','dylan522p','SemiAnalysis_','dhgrj10','carrynointerest','riyadosofian','EarningsHubHQ','stockspinoffss','Mayhem4Markets','BenBajarin','SouthernValue95','theallinpod','EugeneNg','Atreidesmgmt','firstadopter','hosseeb','ttunguz','SKundojjala','GHadjia','TheBenSchmark','super_macro','CathyYuanZhang','_mm85','ahern_brendan','PhilippSchi','_clarktang','LambdaAPI','MebFaber','DeepSailCapital','liqian_ren','kevinweil','2waytvapp','ByChunHan','suelinwong','DesmondShum','Goyal_Vivek','HiddenValueGems','insiderreportbr','barronsonline','JHIAdvisors','FabiusMercurius','Hedgeye','5_min_macro','satyanadella','gustavohbfranco','igoldfajn','contrarian8888','robin_j_brooks','Downtown','SquawkCNBC','agurevich23','FundamentEdge','BillBrewsterTBB','jenniferzeng97','macropotamus','LynAldenContact','delaFeriaR','Ritholtz','pkedrosky','bespokeinvest','ReutersBiz','ftfinancenews','FirstSquawk','YuanTalks','EconguyRosie','WSJmarkets','TradeLiveWithIG','osullivanEcon','LiveSquawk','TheMarketHuddle','heisenbergrpt','Ole_S_Hansen','paulkrugman','josephwang','MikaelSarwe','MarinKatusa','KatusaResearch','A_Schroeder1985','julianschorpp','eleconomista','donnelly_brent','UraniumEquities','samueltombs','DianeSwonk','MrBlonde_macro','dan_murphy','MichaelKantro','JBREC','GuyDealership','DeanChristians','edclissold','IanRHarnett','DanielKral1','EnergyAspects','ReutersCommods','FinancialTimes','ftcommodities','BNCommodities','Trader_Dante','darioperkins','truflation','PipelineFlows','asr_london','Brad_Setser','onlylarp','CelsiusEnergyFM','Johan_E_Lof','MichaelGrahn1','USAEnergyNatGas','marketplunger1','aeelsherif','IFM_Economist','bravosresearch','JamieHeard5','annmarie','biancoresearch','POTUS46Archive','PeterSchiff','Carl_C_Icahn','JulianMI2','DanielSLoeb1','FT','kevinmuir','jnordvig','Makro_trader','361Capital','CathieDWood','ARKInvest','TSOH_Investing','jaminball','yardeni','SumZero','DougKass','Rory_Johnston','OpenSquareCap','HFI_Research','Amena__Bakr','JKempEnergy','BisonInsights','quakes99','BambroughKevin','uraniuminsider','numerco','HowardSchilit','AuditAnalytics','Lordshipstrade','ScorpionFund','Bleecker__St','Capsbolsa','CitronResearch','HindenburgRes','BillAckman','markets','RayDalio','KennethLFisher','jimcramer','CNBC','WSJ','BrazilJournal','business','BBCBreaking','CNN','zerohedge','elerianm','Fxhedgers','IPCapitalPart','RomeuZema','rodrigopacheco','ArthurLira_','borrowed_ideas','economics','crescatkevin','UBReporter','urnerbarry','HowardMarksBook','snyatta','profgalloway','sgoldenstein','michaeljburry','RickLacerda68','JavierBlas','jfarchy','laurojardim','SegraCapital','fintwit'];
 
 function getNewsFeedTickers() {
   const sel = document.getElementById('nf-ticker-filter');
@@ -2705,41 +2705,70 @@ function removeTwitterAcct(handle) {
   renderTwitterEmbeds();
 }
 
+let nfXFilter = '';
+let nfXPage = 0;
+const NF_X_PER_PAGE = 6;
+
 function renderTwitterTags() {
   const el = document.getElementById('nf-twitter-accounts');
-  const inp = el.querySelector('input');
-  el.innerHTML = '';
-  nfTwitterAccounts.forEach(h => {
-    const tag = document.createElement('span');
-    tag.className = 'nf-acct-tag';
-    tag.innerHTML = `@${h} <span class="nf-rm" onclick="removeTwitterAcct('${h}')">×</span>`;
-    el.appendChild(tag);
-  });
-  el.appendChild(inp || (() => {
-    const i = document.createElement('input');
-    i.id = 'nf-add-acct'; i.type = 'text'; i.placeholder = '+ add @handle';
-    i.style.cssText = 'width:120px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:.75rem';
-    i.onkeydown = e => { if(e.key==='Enter') addTwitterAcct(); };
-    return i;
-  })());
+  el.innerHTML = `
+    <span style="font-size:.7rem;color:var(--text3)">${nfTwitterAccounts.length} accounts</span>
+    <input id="nf-add-acct" type="text" placeholder="+ add @handle"
+      style="width:120px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:.75rem"
+      onkeydown="if(event.key==='Enter') addTwitterAcct()">
+  `;
+}
+
+function getFilteredXAccounts() {
+  if (!nfXFilter) return nfTwitterAccounts;
+  const q = nfXFilter.toLowerCase();
+  return nfTwitterAccounts.filter(h => h.toLowerCase().includes(q));
+}
+
+function filterXAccounts(q) {
+  nfXFilter = q;
+  nfXPage = 0;
+  renderTwitterEmbeds();
+}
+
+function setXPage(p) {
+  const accts = getFilteredXAccounts();
+  const maxPage = Math.max(0, Math.ceil(accts.length / NF_X_PER_PAGE) - 1);
+  nfXPage = Math.max(0, Math.min(p, maxPage));
+  renderTwitterEmbeds();
 }
 
 function renderTwitterEmbeds() {
   const el = document.getElementById('nf-twitter-feeds');
-  if(nfTwitterAccounts.length === 0) {
-    el.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text3)">No accounts added. Type a @handle above and press Enter.</div>';
-    return;
-  }
-  el.innerHTML = nfTwitterAccounts.map(h => `
-    <div class="nf-x-card">
-      <div class="nf-x-header">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--text)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-        <a href="https://x.com/${h}" target="_blank" rel="noopener" class="nf-x-handle">@${h}</a>
-        <span class="nf-x-lbl">timeline</span>
-      </div>
-      <a class="twitter-timeline" data-theme="dark" data-chrome="noheader nofooter noborders transparent" data-height="550" href="https://twitter.com/${h}">Loading @${h}...</a>
+  const accts = getFilteredXAccounts();
+  const total = accts.length;
+  const maxPage = Math.max(0, Math.ceil(total / NF_X_PER_PAGE) - 1);
+  const start = nfXPage * NF_X_PER_PAGE;
+  const slice = accts.slice(start, start + NF_X_PER_PAGE);
+
+  el.innerHTML = `
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+      <input type="text" placeholder="Filter accounts..." value="${nfXFilter}"
+        oninput="filterXAccounts(this.value)"
+        style="flex:1;min-width:140px;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.75rem">
+      <span style="font-size:.65rem;color:var(--text3)">${total} accounts</span>
     </div>
-  `).join('');
+    ${slice.map(h => `
+      <div class="nf-x-card">
+        <div class="nf-x-header" style="display:flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--text)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <a href="https://x.com/${h}" target="_blank" rel="noopener" class="nf-x-handle">@${h}</a>
+          <span class="nf-rm" onclick="removeTwitterAcct('${h}')" title="Remove">&times;</span>
+        </div>
+        <a class="twitter-timeline" data-theme="dark" data-chrome="noheader nofooter noborders transparent" data-height="500" href="https://twitter.com/${h}">Loading @${h}...</a>
+      </div>
+    `).join('')}
+    <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:10px">
+      <button onclick="setXPage(${nfXPage - 1})" ${nfXPage===0?'disabled':''} style="padding:4px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.72rem;cursor:pointer">&laquo; Prev</button>
+      <span style="font-size:.7rem;color:var(--text3)">Page ${nfXPage+1} of ${maxPage+1}</span>
+      <button onclick="setXPage(${nfXPage + 1})" ${nfXPage>=maxPage?'disabled':''} style="padding:4px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.72rem;cursor:pointer">Next &raquo;</button>
+    </div>
+  `;
   if(window.twttr && twttr.widgets) twttr.widgets.load(el);
 }
 
