@@ -790,10 +790,26 @@ mark { background:rgba(99,102,241,.25); color:var(--text); border-radius:2px; pa
     <div class="nf-col">
       <div class="chart-card" style="height:100%;display:flex;flex-direction:column">
         <div class="chart-card-header">
-          <div class="chart-card-title">Twitter / X</div>
-          <div class="chart-card-sub">Followed accounts — embed timelines</div>
+          <div class="chart-card-title">Twitter / X — Unified Feed</div>
+          <div class="chart-card-sub" id="nf-x-sub">Top accounts timeline — most recent posts</div>
         </div>
-        <div id="nf-twitter-feeds" style="flex:1;overflow-y:auto;max-height:800px;padding:8px">
+        <div style="padding:4px 8px 6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <select id="nf-x-list-sel" onchange="switchXList(this.value)" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.72rem">
+            <option value="all">All Top Accounts</option>
+            <option value="tech">Tech / AI</option>
+            <option value="semis">Semiconductors</option>
+            <option value="macro">Macro / Rates / FX</option>
+            <option value="investing">Investing / HFs</option>
+            <option value="news">News / Breaking</option>
+            <option value="brazil">Brazil / LatAm</option>
+            <option value="energy">Energy / Commodities</option>
+          </select>
+          <input id="nf-x-search" type="text" placeholder="Search @handle..."
+            oninput="filterXAccounts(this.value)"
+            style="width:120px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.72rem">
+          <span style="font-size:.62rem;color:var(--text3)" id="nf-x-count"></span>
+        </div>
+        <div id="nf-twitter-feeds" style="flex:1;overflow-y:auto;max-height:800px;padding:4px 8px">
         </div>
       </div>
     </div>
@@ -2705,24 +2721,48 @@ function removeTwitterAcct(handle) {
   renderTwitterEmbeds();
 }
 
+const X_LISTS = {
+  tech: ['karpathy','sama','leopoldasch','AravSrinivas','deepseek_ai','AnthropicAI','GeminiApp','nvidianewsroom','LisaSu','gdb','natfriedman','alexandr_wang','steipete','OfficialLoganK','natolambert','emollick','adcock_brett','kevinweil','isafulf','nickaturley','DavidSacks','patrickc','pmarca','ericschmidt','satyanadella','bchesky','altcap','martin_casado','coatuemgmt'],
+  semis: ['dylan522p','SemiAnalysis_','fabknowledge','Srasgon','DylanOnChips','ChipsandWafers','mingchikuo','SemiEngineering','HPC_Guru','The_AI_Investor','TheNextPlatform','trendforce','techinsightsinc','BenBajarin','SKundojjala','IntelProMUltra','PatrickMoorhead','dnystedt'],
+  macro: ['MacroAlf','BittelJulien','NickTimiraos','biancoresearch','darioperkins','donnelly_brent','Brad_Setser','josephwang','MrBlonde_macro','EconguyRosie','DianeSwonk','paulkrugman','MikaelSarwe','osullivanEcon','macropotamus','LynAldenContact','5_min_macro','PauloMacro','super_macro','robin_j_brooks','jnordvig','DanielKral1','samueltombs','MichaelKantro','PeterSchiff','pkedrosky'],
+  investing: ['BillAckman','chamath','michaeljburry','RayDalio','GavinSBaker','borrowed_ideas','InvestSpecial','RealJimChanos','DanielTNiles','carrynointerest','DanielSLoeb1','Atreidesmgmt','firstadopter','DougKass','HowardMarksBook','CathieDWood','Ritholtz','bgurley','insane_analyst','RihardJarc','Citrini7','sprucepointcap','HindenburgRes','CitronResearch','TheBenSchmark','FundamentEdge','MebFaber','Downtown','Hedgeye'],
+  news: ['zerohedge','FirstSquawk','Fxhedgers','StockMKTNewz','markets','WSJ','CNBC','ReutersBiz','FT','FinancialTimes','theinformation','markgurman','LiveSquawk','knowledge_vital','Mayhem4Markets','TheTranscript_','TMTBreakout','EarningsHubHQ','Quartr_App','NateSilver538','barronsonline','heisenbergrpt','wallstengine','CramerTracker','SquawkCNBC'],
+  brazil: ['BrazilJournal','Capsbolsa','fschuback','rafaelobitten','insiderreportbr','sgoldenstein','gustavohbfranco','igoldfajn','laurojardim','RickLacerda68','PauloMacro','mvcinvesting','IPCapitalPart','profgalloway','snyatta'],
+  energy: ['JavierBlas','jfarchy','EnergyAspects','ReutersCommods','ftcommodities','BNCommodities','MarinKatusa','KatusaResearch','Ole_S_Hansen','Rory_Johnston','HFI_Research','Amena__Bakr','JKempEnergy','CelsiusEnergyFM','UraniumEquities','uraniuminsider','quakes99','PipelineFlows'],
+};
+
 let nfXFilter = '';
+let nfXCurrentList = 'all';
 let nfXPage = 0;
-const NF_X_PER_PAGE = 6;
+const NF_X_PER_PAGE = 4;
 
 function renderTwitterTags() {
   const el = document.getElementById('nf-twitter-accounts');
-  el.innerHTML = `
-    <span style="font-size:.7rem;color:var(--text3)">${nfTwitterAccounts.length} accounts</span>
-    <input id="nf-add-acct" type="text" placeholder="+ add @handle"
-      style="width:120px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:.75rem"
-      onkeydown="if(event.key==='Enter') addTwitterAcct()">
-  `;
+  el.innerHTML = `<span style="font-size:.7rem;color:var(--text3)">${nfTwitterAccounts.length} accounts tracked</span>`;
 }
 
-function getFilteredXAccounts() {
-  if (!nfXFilter) return nfTwitterAccounts;
-  const q = nfXFilter.toLowerCase();
-  return nfTwitterAccounts.filter(h => h.toLowerCase().includes(q));
+function getActiveXAccounts() {
+  let accts;
+  if (nfXCurrentList === 'all') {
+    const top = [...X_LISTS.tech.slice(0,10),...X_LISTS.semis.slice(0,6),...X_LISTS.macro.slice(0,8),...X_LISTS.investing.slice(0,6),...X_LISTS.news.slice(0,6)];
+    accts = [...new Set(top)];
+  } else {
+    accts = X_LISTS[nfXCurrentList] || X_LISTS.tech;
+  }
+  if (nfXFilter) {
+    const q = nfXFilter.toLowerCase();
+    accts = accts.filter(h => h.toLowerCase().includes(q));
+  }
+  return accts;
+}
+
+function switchXList(list) {
+  nfXCurrentList = list;
+  nfXPage = 0;
+  nfXFilter = '';
+  const inp = document.getElementById('nf-x-search');
+  if(inp) inp.value = '';
+  renderTwitterEmbeds();
 }
 
 function filterXAccounts(q) {
@@ -2732,7 +2772,7 @@ function filterXAccounts(q) {
 }
 
 function setXPage(p) {
-  const accts = getFilteredXAccounts();
+  const accts = getActiveXAccounts();
   const maxPage = Math.max(0, Math.ceil(accts.length / NF_X_PER_PAGE) - 1);
   nfXPage = Math.max(0, Math.min(p, maxPage));
   renderTwitterEmbeds();
@@ -2740,32 +2780,29 @@ function setXPage(p) {
 
 function renderTwitterEmbeds() {
   const el = document.getElementById('nf-twitter-feeds');
-  const accts = getFilteredXAccounts();
+  const accts = getActiveXAccounts();
   const total = accts.length;
   const maxPage = Math.max(0, Math.ceil(total / NF_X_PER_PAGE) - 1);
   const start = nfXPage * NF_X_PER_PAGE;
   const slice = accts.slice(start, start + NF_X_PER_PAGE);
 
+  document.getElementById('nf-x-count').textContent = `${total} accounts`;
+  const listLabel = nfXCurrentList === 'all' ? 'Top 36 accounts' : nfXCurrentList.charAt(0).toUpperCase()+nfXCurrentList.slice(1);
+  document.getElementById('nf-x-sub').textContent = `${listLabel} — showing ${start+1}-${Math.min(start+NF_X_PER_PAGE,total)} of ${total}`;
+
   el.innerHTML = `
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
-      <input type="text" placeholder="Filter accounts..." value="${nfXFilter}"
-        oninput="filterXAccounts(this.value)"
-        style="flex:1;min-width:140px;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.75rem">
-      <span style="font-size:.65rem;color:var(--text3)">${total} accounts</span>
-    </div>
     ${slice.map(h => `
-      <div class="nf-x-card">
-        <div class="nf-x-header" style="display:flex;align-items:center;gap:6px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--text)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      <div class="nf-x-card" style="margin-bottom:6px">
+        <div class="nf-x-header" style="display:flex;align-items:center;gap:6px;padding:4px 0">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--text)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
           <a href="https://x.com/${h}" target="_blank" rel="noopener" class="nf-x-handle">@${h}</a>
-          <span class="nf-rm" onclick="removeTwitterAcct('${h}')" title="Remove">&times;</span>
         </div>
-        <a class="twitter-timeline" data-theme="dark" data-chrome="noheader nofooter noborders transparent" data-height="500" href="https://twitter.com/${h}">Loading @${h}...</a>
+        <a class="twitter-timeline" data-theme="dark" data-chrome="noheader nofooter noborders transparent" data-tweet-limit="3" data-height="420" href="https://twitter.com/${h}">Loading @${h}...</a>
       </div>
     `).join('')}
-    <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:10px">
+    <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:8px;padding-bottom:8px">
       <button onclick="setXPage(${nfXPage - 1})" ${nfXPage===0?'disabled':''} style="padding:4px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.72rem;cursor:pointer">&laquo; Prev</button>
-      <span style="font-size:.7rem;color:var(--text3)">Page ${nfXPage+1} of ${maxPage+1}</span>
+      <span style="font-size:.7rem;color:var(--text3)">${nfXPage+1} / ${maxPage+1}</span>
       <button onclick="setXPage(${nfXPage + 1})" ${nfXPage>=maxPage?'disabled':''} style="padding:4px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.72rem;cursor:pointer">Next &raquo;</button>
     </div>
   `;
