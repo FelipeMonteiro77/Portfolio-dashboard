@@ -707,7 +707,13 @@ mark { background:rgba(99,102,241,.25); color:var(--text); border-radius:2px; pa
       style="padding:8px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.78rem">
       <option value="">Todas as categorias</option>
     </select>
+    <button id="br-refresh-btn" onclick="refreshBriefingFromEmail()"
+      style="padding:8px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.75rem;cursor:pointer">
+      🔄 Atualizar Briefing
+    </button>
+    <span id="br-last-email" style="font-size:.68rem;color:var(--text2)">Último email: --:--</span>
     <span id="br-search-count" style="font-size:.68rem;color:var(--text3)"></span>
+    <span id="br-refresh-status" style="font-size:.66rem;color:var(--text3)"></span>
   </div>
   <div class="grid-4" id="br-kpis"></div>
   <div class="chart-card">
@@ -794,15 +800,9 @@ mark { background:rgba(99,102,241,.25); color:var(--text); border-radius:2px; pa
           <div class="chart-card-sub" id="nf-x-sub">Top accounts timeline — most recent posts</div>
         </div>
         <div style="padding:4px 8px 6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-          <select id="nf-x-list-sel" onchange="switchXList(this.value)" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:.72rem">
-            <option value="all">All Top Accounts</option>
-            <option value="tech">Tech / AI</option>
-            <option value="semis">Semiconductors</option>
-            <option value="macro">Macro / Rates / FX</option>
-            <option value="investing">Investing / HFs</option>
-            <option value="news">News / Breaking</option>
-            <option value="brazil">Brazil / LatAm</option>
-            <option value="energy">Energy / Commodities</option>
+          <select id="nf-x-list-sel" onchange="switchXList(this.value)" disabled title="Using fixed fast list"
+            style="padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text3);font-size:.72rem;opacity:.8;cursor:not-allowed">
+            <option value="all">Fast List (50)</option>
           </select>
           <input id="nf-x-search" type="text" placeholder="Search @handle..."
             oninput="filterXAccounts(this.value)"
@@ -2516,20 +2516,111 @@ const BR_CALLS = [
   {t:"Pre-March FOMC Thoughts — Josh Schiffrin",time:"",date:"3/18",link:"https://marquee.gs.com/content/markets/themes/FOMC.html",src:"Goldman Sachs"},
 ];
 
+let BRIEFING_DATA = BRIEFING;
+let BR_CALLS_DATA = BR_CALLS;
+let brLastRefreshAt = null;
+
+function parseBrDate(s) {
+  if (!s || typeof s !== 'string') return null;
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/);
+  if (!m) return null;
+  const [, y, mo, d, h, mi] = m;
+  return new Date(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi));
+}
+
+function fmtClock(dt) {
+  if (!dt) return '--:--';
+  return dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function fmtDateClock(dt) {
+  if (!dt) return '--';
+  return `${dt.toLocaleDateString()} ${fmtClock(dt)}`;
+}
+
+function getLatestBriefingEmailDate() {
+  const all = getAllBrEmails();
+  const parsed = all.map(e => parseBrDate(e.d)).filter(Boolean);
+  if (!parsed.length) return null;
+  return parsed.reduce((max, dt) => (dt > max ? dt : max), parsed[0]);
+}
+
+function updateBriefingMeta() {
+  const latest = getLatestBriefingEmailDate();
+  const lastEmailEl = document.getElementById('br-last-email');
+  if (lastEmailEl) {
+    lastEmailEl.textContent = `Último email: ${fmtClock(latest)}`;
+    lastEmailEl.title = latest ? `Recebido em ${fmtDateClock(latest)}` : '';
+  }
+  const statusEl = document.getElementById('br-refresh-status');
+  if (statusEl && brLastRefreshAt) {
+    statusEl.textContent = `Última atualização: ${fmtClock(brLastRefreshAt)}`;
+  }
+}
+
+async function refreshBriefingFromEmail() {
+  const btn = document.getElementById('br-refresh-btn');
+  const statusEl = document.getElementById('br-refresh-status');
+  const searchVal = document.getElementById('br-search')?.value || '';
+  if (btn) btn.disabled = true;
+  if (statusEl) statusEl.textContent = 'Atualizando...';
+
+  let loadedRemote = false;
+  const candidates = [
+    'briefing_latest.json',
+    'data/briefing_latest.json',
+    'briefing/latest.json'
+  ];
+
+  for (const url of candidates) {
+    try {
+      const res = await fetch(`${url}?_=${Date.now()}`, { cache: 'no-store' });
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (data && data.categories && data.highlights) {
+        BRIEFING_DATA = data;
+        if (Array.isArray(data.calls)) BR_CALLS_DATA = data.calls;
+        loadedRemote = true;
+        break;
+      }
+      if (data && data.briefing && data.briefing.categories) {
+        BRIEFING_DATA = data.briefing;
+        if (Array.isArray(data.calls)) BR_CALLS_DATA = data.calls;
+        loadedRemote = true;
+        break;
+      }
+    } catch {
+      // Try next candidate URL.
+    }
+  }
+
+  brLastRefreshAt = new Date();
+  renderBriefing();
+  filterBriefing(searchVal);
+  updateBriefingMeta();
+
+  if (statusEl) {
+    statusEl.textContent = loadedRemote
+      ? `Atualizado via fonte de email às ${fmtClock(brLastRefreshAt)}`
+      : `Snapshot local recarregado às ${fmtClock(brLastRefreshAt)}`;
+  }
+  if (btn) btn.disabled = false;
+}
+
 function getAllBrEmails() {
   const all = [];
-  BRIEFING.categories.forEach(g => {
+  BRIEFING_DATA.categories.forEach(g => {
     g.items.forEach(e => all.push({...e, cat: g.cat}));
   });
   return all;
 }
 
 function renderBriefing() {
-  if(brRendered) return;
   brRendered = true;
-  const B = BRIEFING;
+  const B = BRIEFING_DATA;
 
   const sel = document.getElementById('br-cat-filter');
+  sel.innerHTML = '<option value="">Todas as categorias</option>';
   B.categories.forEach(g => {
     const o = document.createElement('option');
     o.value = g.cat; o.textContent = `${CAT_ICONS[g.cat]||''} ${g.cat} (${g.count})`;
@@ -2566,11 +2657,12 @@ function renderBriefing() {
   renderBrCalls();
   renderBrPieChart();
   renderBrCategories();
+  updateBriefingMeta();
 }
 
 function renderBrCalls() {
   const today = '3/18';
-  document.getElementById('br-calls').innerHTML = BR_CALLS.map(c => {
+  document.getElementById('br-calls').innerHTML = BR_CALLS_DATA.map(c => {
     const isToday = c.date === today;
     return `<div class="br-call-row ${isToday?'br-call-today':''}">
       <span class="br-call-date">${c.date}</span>
@@ -2582,7 +2674,7 @@ function renderBrCalls() {
 }
 
 function renderBrPieChart() {
-  const B = BRIEFING;
+  const B = BRIEFING_DATA;
   const labels = B.categories.map(g => g.cat);
   const values = B.categories.map(g => g.count);
   const colors = B.categories.map(g => CAT_HEX[g.cat]||'#6b7280');
@@ -2603,7 +2695,7 @@ function renderBrPieChart() {
 }
 
 function renderBrCategories() {
-  const B = BRIEFING;
+  const B = BRIEFING_DATA;
   document.getElementById('br-categories').innerHTML = B.categories.map((g,gi) => `
     <div>
       <div class="br-cat-header" onclick="toggleBrCat(${gi})">
@@ -2731,24 +2823,27 @@ const X_LISTS = {
   energy: ['JavierBlas','jfarchy','EnergyAspects','ReutersCommods','ftcommodities','BNCommodities','MarinKatusa','KatusaResearch','Ole_S_Hansen','Rory_Johnston','HFI_Research','Amena__Bakr','JKempEnergy','CelsiusEnergyFM','UraniumEquities','uraniuminsider','quakes99','PipelineFlows'],
 };
 
+const X_FAST_ACCOUNTS = [
+  'karpathy','AnthropicAI','FundaAI','insane_analyst','sama','AravSrinivas','deepseek_ai','GeminiApp','natolambert','emollick',
+  'nvidianewsroom','LisaSu','satyanadella','alexandr_wang','pmarca','natfriedman','DavidSacks','patrickc','gdb','OfficialLoganK',
+  'dylan522p','SemiAnalysis_','DylanOnChips','ChipsandWafers','trendforce','techinsightsinc','mingchikuo','Srasgon',
+  'MacroAlf','BittelJulien','NickTimiraos','biancoresearch','darioperkins','Brad_Setser','josephwang','LynAldenContact',
+  'BillAckman','RayDalio','chamath','RealJimChanos','GavinSBaker','DanielTNiles','HowardMarksBook',
+  'zerohedge','FirstSquawk','Fxhedgers','markets','WSJ','CNBC','ReutersBiz'
+];
+
 let nfXFilter = '';
 let nfXCurrentList = 'all';
 let nfXPage = 0;
-const NF_X_QUERY_ACCOUNTS = 12;
+const NF_X_QUERY_ACCOUNTS = 6;
 
 function renderTwitterTags() {
   const el = document.getElementById('nf-twitter-accounts');
-  el.innerHTML = `<span style="font-size:.7rem;color:var(--text3)">${nfTwitterAccounts.length} accounts tracked</span>`;
+  el.innerHTML = `<span style="font-size:.7rem;color:var(--text3)">${X_FAST_ACCOUNTS.length} accounts tracked (fast list)</span>`;
 }
 
 function getActiveXAccounts() {
-  let accts;
-  if (nfXCurrentList === 'all') {
-    const top = [...X_LISTS.tech.slice(0,10),...X_LISTS.semis.slice(0,6),...X_LISTS.macro.slice(0,8),...X_LISTS.investing.slice(0,6),...X_LISTS.news.slice(0,6)];
-    accts = [...new Set(top)];
-  } else {
-    accts = X_LISTS[nfXCurrentList] || X_LISTS.tech;
-  }
+  let accts = [...X_FAST_ACCOUNTS];
   if (nfXFilter) {
     const q = nfXFilter.toLowerCase();
     accts = accts.filter(h => h.toLowerCase().includes(q));
@@ -2757,11 +2852,13 @@ function getActiveXAccounts() {
 }
 
 function switchXList(list) {
-  nfXCurrentList = list;
+  nfXCurrentList = 'all';
   nfXPage = 0;
   nfXFilter = '';
   const inp = document.getElementById('nf-x-search');
   if(inp) inp.value = '';
+  const sel = document.getElementById('nf-x-list-sel');
+  if(sel) sel.value = 'all';
   renderTwitterEmbeds();
 }
 
@@ -2801,7 +2898,7 @@ function renderTwitterEmbeds() {
   const searchHref = `https://twitter.com/search?q=${encodeURIComponent(query)}&f=live`;
 
   document.getElementById('nf-x-count').textContent = `${total} accounts`;
-  const listLabel = nfXCurrentList === 'all' ? 'Top 36 accounts' : nfXCurrentList.charAt(0).toUpperCase()+nfXCurrentList.slice(1);
+  const listLabel = 'Fast list (50 accounts)';
   document.getElementById('nf-x-sub').textContent = `${listLabel} — últimas 24h (ordem cronológica)`;
 
   if (!total) {
@@ -2827,7 +2924,7 @@ function renderTwitterEmbeds() {
       <a class="twitter-timeline"
          data-theme="dark"
          data-chrome="noheader nofooter noborders transparent"
-         data-height="680"
+         data-height="520"
          href="${searchHref}">
         Loading unified X timeline...
       </a>
