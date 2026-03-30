@@ -78,6 +78,27 @@ new_block = "const SCREEN_WL = [\n" + ",\n".join(new_entries) + "\n];"
 
 html_new = re.sub(r"const SCREEN_WL = \[.*?\];", new_block, html, count=1, flags=re.DOTALL)
 
+# ── Also update VAL_PRICES from the freshly-fetched SCREEN_WL prices ──────
+screen_map = {r["t"]: r["p"] for r in rows}  # ticker → latest price
+val_prices_m = re.search(r"const VAL_PRICES = \{([^}]+)\};", html_new)
+if val_prices_m:
+    val_block = val_prices_m.group(1)
+    def replace_val_price(match):
+        raw_key = match.group(1)          # e.g. NVDA  or  "ENR GY"
+        key = raw_key.strip('"')
+        old_val = match.group(2)
+        if key in screen_map:
+            return f'{raw_key}:{screen_map[key]:.2f}'
+        return match.group(0)
+    new_val_block = re.sub(r'("?[A-Z0-9 ]+"?):([0-9.]+)', replace_val_price, val_block)
+    html_new = html_new.replace(
+        f"const VAL_PRICES = {{{val_block}}};",
+        f"const VAL_PRICES = {{{new_val_block}}};"
+    )
+    print("VAL_PRICES updated from SCREEN_WL prices.")
+else:
+    print("WARNING: VAL_PRICES not found, skipping.")
+
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_new)
 
