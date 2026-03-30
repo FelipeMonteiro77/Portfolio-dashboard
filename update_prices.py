@@ -39,7 +39,7 @@ unique = list(dict.fromkeys(tickers_yf))
 
 print(f"Fetching {len(unique)} tickers via yfinance...")
 try:
-    data = yf.download(unique, period="5d", interval="1d", progress=False, auto_adjust=True, group_by="ticker")
+    data = yf.download(unique, period="5d", interval="1d", progress=False, auto_adjust=True)
 except Exception as e:
     print(f"Download error: {e}"); sys.exit(1)
 
