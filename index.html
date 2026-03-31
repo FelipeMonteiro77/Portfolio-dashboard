@@ -2652,9 +2652,22 @@ function renderBriefing() {
   updateBriefingMeta();
 }
 
+// Returns true if call is Brazilian or in Portuguese — should be hidden
+function isBrCall(c) {
+  const BR_SOURCES = ['itaú','itau','bradesco','xp invest','btg','safra','bb invest','bb seguri','genial','modal','necton','órama','orama','ágora','agora','rico invest','guide invest','terra invest','inter invest','mirae','sicoob','toro invest','nuinvest'];
+  const PT_WORDS = /reunião|videoconferência|conferência|hoje\b|amanhã|às \d|horário|brasília|são paulo|rio de janeiro|mercado brasileiro|bolsa|selic|ipca|copom|\breal\b|câmbio|ibovespa/i;
+  const src = (c.src || '').toLowerCase();
+  if (BR_SOURCES.some(s => src.includes(s))) return true;
+  if (PT_WORDS.test(c.t)) return true;
+  if (/[ãõçÃÕÇ]/.test(c.t)) return true;
+  if (/\bIBBA\b|\bBBA\b/.test(c.t)) return true;
+  return false;
+}
+
 function renderBrCalls() {
   const today = '3/30';
-  document.getElementById('br-calls').innerHTML = BR_CALLS_DATA.map(c => {
+  const filtered = BR_CALLS_DATA.filter(c => !isBrCall(c));
+  document.getElementById('br-calls').innerHTML = filtered.map(c => {
     const isToday = c.date === today;
     return `<div class="br-call-row ${isToday?'br-call-today':''}">
       <span class="br-call-date">${c.date}</span>
