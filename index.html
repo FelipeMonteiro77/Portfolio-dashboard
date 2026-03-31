@@ -2665,17 +2665,31 @@ function isBrCall(c) {
 }
 
 function renderBrCalls() {
-  const today = '3/30';
-  const filtered = BR_CALLS_DATA.filter(c => !isBrCall(c));
-  document.getElementById('br-calls').innerHTML = filtered.map(c => {
-    const isToday = c.date === today;
-    return `<div class="br-call-row ${isToday?'br-call-today':''}">
-      <span class="br-call-date">${c.date}</span>
-      <span class="br-call-time">${c.time||'—'}</span>
-      <span class="br-call-title">${c.t}<span style="color:var(--text3);font-size:.65rem;margin-left:6px">${c.src}</span></span>
-      ${c.link ? `<span class="br-call-link"><a href="${c.link}" target="_blank" rel="noopener">Register</a></span>` : ''}
-    </div>`;
-  }).join('');
+  const now = new Date();
+  const todayStr = `${now.getMonth()+1}/${now.getDate()}`;
+  const todayMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+
+  const filtered = BR_CALLS_DATA.filter(c => {
+    if (isBrCall(c)) return false;
+    if (!c.date) return true;
+    const [m, d] = c.date.split('/').map(Number);
+    if (!m || !d) return true;
+    const evMs = new Date(now.getFullYear(), m - 1, d).getTime();
+    return evMs >= todayMs && evMs <= todayMs + weekMs;
+  });
+
+  document.getElementById('br-calls').innerHTML = filtered.length
+    ? filtered.map(c => {
+        const isToday = c.date === todayStr;
+        return `<div class="br-call-row ${isToday?'br-call-today':''}">
+          <span class="br-call-date">${c.date}</span>
+          <span class="br-call-time">${c.time||'—'}</span>
+          <span class="br-call-title">${c.t}<span style="color:var(--text3);font-size:.65rem;margin-left:6px">${c.src}</span></span>
+          ${c.link ? `<span class="br-call-link"><a href="${c.link}" target="_blank" rel="noopener">Register</a></span>` : ''}
+        </div>`;
+      }).join('')
+    : '<div style="padding:16px;color:var(--text3);font-size:.8rem">No calls or events for the next 7 days.</div>';
 }
 
 function renderBrPieChart() {
