@@ -2642,7 +2642,14 @@ function renderBriefing() {
       <div class="stat-sub">oil, wars, sanctions, energy</div></div>
   `;
 
-  document.getElementById('br-highlights').innerHTML = B.highlights.map((h,i) => `
+  const BR_HL_RE = /\bselic\b|\bipca\b|\bbcb\b|\bcopom\b|\bibovespa\b|\bBRL\b|\bR\$|\blula\b|\bhaddad\b|\bplanalto\b|\bstf\b|\btcu\b|\bcâmara\b|\bsenado\b|\bbolsonaro\b/i;
+  const hlFiltered = B.highlights.filter(h => {
+    if ((h.cat||'').toLowerCase().includes('brasil')) return false;
+    if (BR_HL_RE.test(h.s)) return false;
+    if (/\.com\.br\b/.test(h.f||'')) return false;
+    return true;
+  });
+  document.getElementById('br-highlights').innerHTML = hlFiltered.map((h,i) => `
     <div class="br-hl" style="border-left-color:${CAT_COLORS[h.cat]||'var(--blue)'}" onclick="toggleHlDetail(this)">
       <div class="br-hl-subj">${i+1}. ${h.s}</div>
       <div class="br-hl-meta">${CAT_ICONS[h.cat]||''} ${h.cat} · ${h.f} · ${h.d.slice(11)}</div>
