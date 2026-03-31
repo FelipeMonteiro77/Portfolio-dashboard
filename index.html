@@ -910,59 +910,86 @@ async function refreshLivePrices() {
   const btn = document.getElementById('refresh-btn');
   const icon = document.getElementById('refresh-icon');
   const status = document.getElementById('refresh-status');
-  btn.classList.add('loading');
-  icon.innerHTML = '<span class="spin">🔄</span>';
-  status.textContent = 'Fetching prices…';
+  const GH_REPO = 'FelipeMonteiro77/Portfolio-dashboard';
+  const GH_WORKFLOW = 'update-prices.yml';
+  const LS_KEY = 'gh_pat_prices';
 
-  const tickers = getAllTickers();
-  let updated = 0, failed = 0;
-  const batchSize = 6;
-
-  for(let i = 0; i < tickers.length; i += batchSize) {
-    const batch = tickers.slice(i, i + batchSize);
-    status.textContent = `Fetching ${i+1}–${Math.min(i+batchSize, tickers.length)} of ${tickers.length}…`;
-
-    const results = await Promise.all(batch.map(async t => {
-      const data = await fetchMarketPrice(t);
-      return { ticker: t, data };
-    }));
-
-    results.forEach(({ticker, data}) => {
-      if(!data || !data.price) { failed++; return; }
-      updated++;
-
-      if(VAL_PRICES.hasOwnProperty(ticker)) {
-        VAL_PRICES[ticker] = data.price;
-      }
-
-      const sw = SCREEN_WL.find(d => d.t === ticker);
-      if(sw) {
-        const oldPrice = sw.p;
-        sw.p = data.price;
-        if(data.prevClose) {
-          sw.chg = ((data.price - data.prevClose) / data.prevClose * 100);
-        }
-      }
-    });
+  // Get or prompt for GitHub PAT
+  let token = localStorage.getItem(LS_KEY);
+  if (!token) {
+    token = prompt('Enter a GitHub Personal Access Token with "actions:write" scope to trigger price updates:');
+    if (!token) { status.textContent = 'Cancelled — no token provided.'; status.style.color = 'var(--red)'; return; }
+    localStorage.setItem(LS_KEY, token);
   }
 
-  valRendered = false;
-  screenRendered = false;
-  screenRSIFetched = false;
+  btn.classList.add('loading');
+  icon.innerHTML = '<span class="spin">🔄</span>';
+  status.textContent = 'Triggering GitHub Actions…';
+  status.style.color = 'var(--text3)';
 
-  const activeTab = document.querySelector('.tab.active');
-  const tabName = activeTab ? activeTab.textContent.trim() : '';
-  if(tabName.includes('Valuation')) renderValuation();
-  else if(tabName.includes('Screen')) renderScreen();
+  try {
+    // Trigger workflow_dispatch
+    const res = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' },
+      body: JSON.stringify({ ref: 'main' })
+    });
 
-  lastRefresh = new Date();
-  const timeStr = lastRefresh.toLocaleTimeString('en', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  status.textContent = `✓ ${updated} updated, ${failed} failed · ${timeStr}`;
-  status.style.color = failed > updated ? 'var(--red)' : 'var(--green)';
-  btn.classList.remove('loading');
-  icon.innerHTML = '🔄';
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem(LS_KEY);
+      status.textContent = '✗ Invalid token — cleared. Click again to re-enter.';
+      status.style.color = 'var(--red)';
+      btn.classList.remove('loading'); icon.innerHTML = '🔄';
+      return;
+    }
+    if (!res.ok && res.status !== 204) {
+      status.textContent = `✗ GitHub API error ${res.status}`;
+      status.style.color = 'var(--red)';
+      btn.classList.remove('loading'); icon.innerHTML = '🔄';
+      return;
+    }
 
-  setTimeout(() => { status.style.color = 'var(--text3)'; }, 3000);
+    // Poll for completion (~45s typical)
+    status.textContent = 'Workflow triggered — updating prices…';
+    let done = false;
+    for (let i = 0; i < 12; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+      const elapsed = (i + 1) * 5;
+      status.textContent = `Updating prices… ${elapsed}s`;
+
+      // Check latest run status
+      try {
+        const runsRes = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/runs?per_page=1&status=completed`, {
+          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+        });
+        if (runsRes.ok) {
+          const runsData = await runsRes.json();
+          if (runsData.workflow_runs && runsData.workflow_runs.length > 0) {
+            const latest = runsData.workflow_runs[0];
+            const runAge = (Date.now() - new Date(latest.updated_at).getTime()) / 1000;
+            if (runAge < 60 && latest.conclusion === 'success') {
+              done = true;
+              break;
+            }
+          }
+        }
+      } catch(e) {}
+    }
+
+    if (done) {
+      status.textContent = '✓ Prices updated — reloading page…';
+      status.style.color = 'var(--green)';
+      setTimeout(() => location.reload(true), 1500);
+    } else {
+      status.textContent = '⏳ Workflow running — refresh page in ~30s';
+      status.style.color = 'var(--orange)';
+      btn.classList.remove('loading'); icon.innerHTML = '🔄';
+    }
+  } catch (err) {
+    status.textContent = `✗ Error: ${err.message}`;
+    status.style.color = 'var(--red)';
+    btn.classList.remove('loading'); icon.innerHTML = '🔄';
+  }
 }
 
 // ── Theme ──────────────────────────────────────────────
@@ -3066,7 +3093,7 @@ renderSnapshot();
 populateTickers();
 renderTicker();
 computePriceAnalytics();
-refreshLivePrices();
+// Prices are updated server-side via GitHub Actions — no auto-refresh on load
 </script>
 </body>
 </html>
