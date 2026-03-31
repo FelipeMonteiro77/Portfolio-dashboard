@@ -78,11 +78,36 @@ new_block = "const SCREEN_WL = [\n" + ",\n".join(new_entries) + "\n];"
 
 html_new = re.sub(r"const SCREEN_WL = \[.*?\];", new_block, html, count=1, flags=re.DOTALL)
 
-# ── Also update VAL_PRICES from the freshly-fetched SCREEN_WL prices ──────
+# ── Also update VAL_PRICES — from SCREEN_WL + fetch missing tickers ──────
 screen_map = {r["t"]: r["p"] for r in rows}  # ticker → latest price
 val_prices_m = re.search(r"const VAL_PRICES = \{([^}]+)\};", html_new)
 if val_prices_m:
     val_block = val_prices_m.group(1)
+    # Find VAL tickers missing from SCREEN_WL
+    val_tickers = re.findall(r'"?([A-Z][A-Z0-9 ]+)"?:[\d.]+', val_block)
+    missing = [t for t in val_tickers if t not in screen_map]
+
+    # Fetch missing tickers via yfinance
+    if missing:
+        VAL_YF_MAP = {"ENR GY": "ENR.DE"}  # special ticker mappings
+        missing_yf = [VAL_YF_MAP.get(t, t) for t in missing]
+        print(f"Fetching {len(missing_yf)} extra VAL tickers: {missing}")
+        try:
+            vdata = yf.download(missing_yf, period="5d", interval="1d", progress=False, auto_adjust=True)
+            for orig, yf_sym in zip(missing, missing_yf):
+                try:
+                    if len(missing_yf) > 1:
+                        closes = vdata["Close"][yf_sym].dropna()
+                    else:
+                        closes = vdata["Close"].dropna()
+                    if len(closes) >= 1:
+                        screen_map[orig] = round(float(closes.iloc[-1]), 2)
+                        print(f"  VAL extra: {orig} = {screen_map[orig]}")
+                except Exception as ex:
+                    print(f"  VAL extra FAILED: {orig} — {ex}")
+        except Exception as ex:
+            print(f"  VAL extra download error: {ex}")
+
     def replace_val_price(match):
         raw_key = match.group(1)          # e.g. NVDA  or  "ENR GY"
         key = raw_key.strip('"')
@@ -95,7 +120,7 @@ if val_prices_m:
         f"const VAL_PRICES = {{{val_block}}};",
         f"const VAL_PRICES = {{{new_val_block}}};"
     )
-    print("VAL_PRICES updated from SCREEN_WL prices.")
+    print("VAL_PRICES updated.")
 else:
     print("WARNING: VAL_PRICES not found, skipping.")
 
