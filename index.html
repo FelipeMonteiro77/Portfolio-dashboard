@@ -2668,7 +2668,7 @@ function renderBrCalls() {
   const now = new Date();
   const todayStr = `${now.getMonth()+1}/${now.getDate()}`;
   const todayMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  const dayMs = 24 * 60 * 60 * 1000;
 
   const filtered = BR_CALLS_DATA.filter(c => {
     if (isBrCall(c)) return false;
@@ -2676,7 +2676,7 @@ function renderBrCalls() {
     const [m, d] = c.date.split('/').map(Number);
     if (!m || !d) return true;
     const evMs = new Date(now.getFullYear(), m - 1, d).getTime();
-    return evMs >= todayMs && evMs <= todayMs + weekMs;
+    return evMs >= todayMs - dayMs && evMs <= todayMs + 7 * dayMs;
   });
 
   document.getElementById('br-calls').innerHTML = filtered.length
