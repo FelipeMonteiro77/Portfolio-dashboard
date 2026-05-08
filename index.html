@@ -2021,7 +2021,10 @@ function renderScreen() {
       <div class="sc-head">
         <div>
           <div class="sc-ticker">${d.ticker} <span class="rsi-badge ${rsiCls}" data-rsi-ticker="${d.ticker}">RSI ${rsiTxt}</span></div>
-          <div class="sc-name">${d.name}</div>
+          <div class="sc-name" style="display:flex;align-items:center;gap:6px">
+            <span>${d.name}</span>
+            <button type="button" title="Search Twitter + Email mentions (opens Claude in a new tab)" onclick="event.preventDefault();event.stopPropagation();openMentions('${d.ticker}', ${JSON.stringify(d.name)})" style="border:1px solid var(--border);background:var(--surface2);color:var(--blue);font-size:.62rem;font-weight:600;padding:1px 6px;border-radius:3px;cursor:pointer;letter-spacing:.03em">🔍 Mentions</button>
+          </div>
         </div>
         <span class="sc-sector">${d.sector}</span>
       </div>
@@ -2178,6 +2181,24 @@ function renderNewsItems(el, items, partial) {
       </div>
     </div>`;
   }).join('') + (partial ? '<div class="news-loading" style="padding:12px"><span class="spinner"></span> Loading more...</div>' : '');
+}
+
+// ── MENTIONS BUTTON: open Claude with a pre-filled prompt ─────────────
+// Builds a claude.ai/new URL containing instructions to query the local
+// Twitter SQLite corpus and Outlook (via MCP) for mentions of the ticker,
+// grouped by profile (Twitter handle / email sender).
+function openMentions(ticker, name) {
+  const prompt = `Search our local data sources for mentions of $${ticker} (${name}) in the last 7 days.\n\n` +
+`1. TWITTER CORPUS — query the local SQLite at C:/Users/felipe.monteiro/.claude/data/twitter-briefing/tweets.sqlite via FTS5. Search for "${ticker}" and "${name}". GROUP BY handle/author. For each handle, show: handle, date, tweet text (truncated), engagement (likes/RT). Sort handles by relevance (number of mentions, then engagement).\n\n` +
+`2. OUTLOOK EMAIL — use the outlook_email_search MCP tool. Search subject + body for "${ticker}" and "${name}" in the last 7 days. GROUP BY sender (sell-side analyst / broker). For each sender, show: sender name, date, subject, 1-line summary.\n\n` +
+`OUTPUT FORMAT — two sections:\n` +
+`### Twitter mentions ($${ticker})\n` +
+`(grouped by handle, sorted by relevance)\n\n` +
+`### Email mentions ($${ticker})\n` +
+`(grouped by sender, sorted by recency)\n\n` +
+`Keep it concise. Attribution on every datapoint. English only.`;
+  const url = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
+  window.open(url, '_blank', 'noopener');
 }
 
 function getTimeAgo(date) {
