@@ -1,0 +1,290 @@
+{
+  "_schema": {
+    "description": "Per-ticker P&L history and Capstone vs Bloomberg consensus. Edit this file to update the Research tab. All monetary values in B$ unless noted. Set fields to null or [] to show 'Awaiting data' in UI.",
+    "fields": {
+      "pnl.quarters": "labels for x-axis, oldest to newest",
+      "pnl.revenue/gross_profit/operating_income/net_income/ebitda/fcf": "B$ per quarter, same length as quarters",
+      "pnl.eps_diluted": "$ per share per quarter",
+      "pnl.gross_margin_pct/op_margin_pct": "% per quarter",
+      "consensus.metric": "label",
+      "consensus.bloomberg/capstone": "value (units in unit field)",
+      "consensus.unit": "B$, $, %, x"
+    }
+  },
+  "NVDA": {
+    "ticker": "NVDA", "name": "NVIDIA", "sector": "GPU / AI Infra",
+    "marketCapB": 4520.0, "currency": "USD", "fiscal_year_end": "January",
+    "pnl": {
+      "quarters": ["Q1 FY25","Q2 FY25","Q3 FY25","Q4 FY25","Q1 FY26"],
+      "revenue":          [26.04, 30.04, 35.08, 39.33, 44.10],
+      "gross_profit":     [20.40, 22.57, 26.16, 28.95, 32.65],
+      "operating_income": [16.91, 18.64, 21.87, 24.03, 27.40],
+      "net_income":       [14.88, 16.60, 19.31, 22.09, 24.85],
+      "ebitda":           [17.45, 19.30, 22.55, 24.80, 28.20],
+      "eps_diluted":      [0.60, 0.67, 0.78, 0.89, 1.01],
+      "gross_margin_pct": [78.4, 75.1, 74.6, 73.6, 74.0],
+      "op_margin_pct":    [64.9, 62.0, 62.3, 61.1, 62.1],
+      "fcf":              [14.94, 13.49, 16.78, 20.40, 22.10]
+    },
+    "consensus": {
+      "metric":    ["Revenue (Q+1)", "EPS (Q+1)", "Revenue FY+1", "EPS FY+1", "EBITDA FY+1", "Gross Margin FY+1"],
+      "bloomberg": [48.20, 1.10, 215.4, 5.08, 138.0, 73.5],
+      "capstone":  [50.50, 1.18, 224.7, 5.32, 144.5, 74.2],
+      "unit":      ["B$", "$", "B$", "$", "B$", "%"]
+    },
+    "thesis": "Long. Hyperscaler capex ramp + Blackwell cycle stronger than sell-side models. Watching China export controls + supply allocation."
+  },
+  "AVGO": {
+    "ticker": "AVGO", "name": "Broadcom", "sector": "Semis / AI ASIC",
+    "marketCapB": 1540.0, "currency": "USD", "fiscal_year_end": "October",
+    "pnl": {
+      "quarters": ["Q2 FY24","Q3 FY24","Q4 FY24","Q1 FY25","Q2 FY25"],
+      "revenue":          [12.49, 13.07, 14.05, 14.92, 15.78],
+      "gross_profit":     [7.61, 7.96, 8.65, 9.18, 9.71],
+      "operating_income": [3.18, 4.59, 5.03, 5.56, 5.94],
+      "net_income":       [2.12, 4.32, 4.32, 5.10, 5.45],
+      "ebitda":           [7.43, 8.22, 8.81, 9.30, 9.85],
+      "eps_diluted":      [0.44, 0.90, 0.90, 1.06, 1.13],
+      "gross_margin_pct": [60.9, 60.9, 61.6, 61.5, 61.5],
+      "op_margin_pct":    [25.5, 35.1, 35.8, 37.3, 37.6],
+      "fcf":              [4.45, 4.79, 5.48, 6.01, 6.42]
+    },
+    "consensus": {
+      "metric":    ["Revenue (Q+1)", "EPS (Q+1)", "Revenue FY+1", "AI Rev FY+1", "EBITDA FY+1"],
+      "bloomberg": [16.50, 1.21, 68.4, 22.0, 41.5],
+      "capstone":  [17.20, 1.28, 72.1, 26.5, 43.8],
+      "unit":      ["B$", "$", "B$", "B$", "B$"]
+    },
+    "thesis": "Long. Custom ASIC ramp with Google/Meta tracking ahead. VMware integration paying off."
+  },
+  "META": {
+    "ticker": "META", "name": "Meta Platforms", "sector": "Social / AI Infra",
+    "marketCapB": 1620.0, "currency": "USD", "fiscal_year_end": "December",
+    "pnl": {
+      "quarters": ["Q1 25","Q2 25","Q3 25","Q4 25","Q1 26"],
+      "revenue":          [42.31, 47.52, 51.24, 56.20, 50.30],
+      "gross_profit":     [34.49, 38.96, 42.20, 46.30, 41.45],
+      "operating_income": [17.56, 20.10, 21.85, 24.55, 21.20],
+      "net_income":       [13.75, 16.30, 17.40, 19.85, 16.95],
+      "ebitda":           [22.10, 25.50, 27.85, 30.95, 26.80],
+      "eps_diluted":      [5.40, 6.42, 6.85, 7.83, 6.68],
+      "gross_margin_pct": [81.5, 82.0, 82.4, 82.4, 82.4],
+      "op_margin_pct":    [41.5, 42.3, 42.6, 43.7, 42.1],
+      "fcf":              [12.50, 14.20, 15.10, 16.85, 13.60]
+    },
+    "consensus": {
+      "metric":    ["Revenue (Q+1)", "EPS (Q+1)", "Revenue FY26", "EPS FY26", "Capex FY26"],
+      "bloomberg": [54.20, 7.05, 218.5, 28.10, 85.0],
+      "capstone":  [55.80, 7.32, 224.0, 29.05, 92.5],
+      "unit":      ["B$", "$", "B$", "$", "B$"]
+    },
+    "thesis": "Long. Reels monetization + Llama/AI ad tools driving CPM. Reality Labs burn still the main fat tail."
+  },
+  "AAPL": {
+    "ticker": "AAPL", "name": "Apple", "sector": "Consumer Tech",
+    "marketCapB": 3850.0, "currency": "USD", "fiscal_year_end": "September",
+    "pnl": {
+      "quarters": ["Q1 FY25","Q2 FY25","Q3 FY25","Q4 FY25","Q1 FY26"],
+      "revenue":          [124.30, 95.36, 85.78, 94.93, 132.50],
+      "gross_profit":     [58.28, 44.87, 39.68, 43.88, 62.10],
+      "operating_income": [42.83, 29.59, 25.35, 29.59, 46.20],
+      "net_income":       [36.33, 23.64, 21.45, 24.78, 38.40],
+      "ebitda":           [45.80, 32.20, 28.10, 32.40, 49.20],
+      "eps_diluted":      [2.40, 1.58, 1.40, 1.64, 2.55],
+      "gross_margin_pct": [46.9, 47.0, 46.3, 46.2, 46.9],
+      "op_margin_pct":    [34.5, 31.0, 29.6, 31.2, 34.9],
+      "fcf":              [29.4, 24.7, 19.1, 23.6, 31.2]
+    },
+    "consensus": {
+      "metric":    ["Revenue (Q+1)", "EPS (Q+1)", "Revenue FY26", "EPS FY26", "Services Rev FY26"],
+      "bloomberg": [98.40, 1.65, 425.2, 7.48, 110.5],
+      "capstone":  [101.20, 1.72, 432.8, 7.81, 115.2],
+      "unit":      ["B$", "$", "B$", "$", "B$"]
+    },
+    "thesis": "Long bias. Services growth + iPhone 17 cycle + capital return. Risk: China unit demand, regulatory on App Store."
+  },
+  "GOOG": {
+    "ticker": "GOOG", "name": "Alphabet", "sector": "Search / Cloud / AI",
+    "marketCapB": 2980.0, "currency": "USD", "fiscal_year_end": "December",
+    "pnl": {
+      "quarters": ["Q1 25","Q2 25","Q3 25","Q4 25","Q1 26"],
+      "revenue":          [90.23, 96.43, 102.35, 108.40, 99.50],
+      "gross_profit":     [52.30, 56.42, 60.20, 64.10, 58.40],
+      "operating_income": [27.45, 31.27, 33.50, 36.85, 30.20],
+      "net_income":       [23.66, 26.30, 28.20, 31.05, 25.40],
+      "ebitda":           [34.20, 38.45, 41.10, 44.75, 37.80],
+      "eps_diluted":      [1.89, 2.12, 2.28, 2.51, 2.06],
+      "gross_margin_pct": [58.0, 58.5, 58.8, 59.1, 58.7],
+      "op_margin_pct":    [30.4, 32.4, 32.7, 34.0, 30.4],
+      "fcf":              [19.20, 22.10, 23.80, 25.40, 18.60]
+    },
+    "consensus": {
+      "metric":    ["Revenue (Q+1)", "EPS (Q+1)", "Cloud Rev FY26", "EPS FY26", "Capex FY26"],
+      "bloomberg": [104.50, 2.20, 56.0, 9.05, 78.0],
+      "capstone":  [107.20, 2.32, 60.5, 9.42, 84.0],
+      "unit":      ["B$", "$", "B$", "$", "B$"]
+    },
+    "thesis": "Long. Cloud accelerating + Gemini monetization > consensus. Risk: Search disruption from AI overviews."
+  },
+  "MSFT": {
+    "ticker": "MSFT", "name": "Microsoft", "sector": "Cloud / Enterprise AI",
+    "marketCapB": 2960.0, "currency": "USD", "fiscal_year_end": "June",
+    "pnl": {
+      "quarters": ["Q3 FY25","Q4 FY25","Q1 FY26","Q2 FY26","Q3 FY26"],
+      "revenue":          [70.07, 76.44, 78.92, 84.30, 82.10],
+      "gross_profit":     [48.15, 52.85, 54.85, 58.92, 57.30],
+      "operating_income": [32.00, 34.92, 36.85, 40.20, 38.50],
+      "net_income":       [25.82, 27.23, 28.95, 31.85, 30.10],
+      "ebitda":           [40.50, 44.12, 46.30, 50.10, 48.20],
+      "eps_diluted":      [3.46, 3.65, 3.88, 4.27, 4.04],
+      "gross_margin_pct": [68.7, 69.1, 69.5, 69.9, 69.8],
+      "op_margin_pct":    [45.7, 45.7, 46.7, 47.7, 46.9],
+      "fcf":              [20.32, 21.50, 23.10, 25.40, 22.90]
+    },
+    "consensus": {
+      "metric":    ["Revenue (Q+1)", "EPS (Q+1)", "Azure Growth Q+1", "EPS FY26", "Capex FY26"],
+      "bloomberg": [86.20, 4.18, 32.0, 16.05, 88.0],
+      "capstone":  [88.50, 4.32, 35.0, 16.55, 95.0],
+      "unit":      ["B$", "$", "%", "$", "B$"]
+    },
+    "thesis": "Long. Azure AI workloads accelerating, Copilot attach building. Watching capex efficiency vs Oracle/Google."
+  },
+  "AMZN": {
+    "ticker": "AMZN", "name": "Amazon", "sector": "E-Com / Cloud (AWS)",
+    "marketCapB": 2200.0, "currency": "USD", "fiscal_year_end": "December",
+    "pnl": {
+      "quarters": ["Q1 25","Q2 25","Q3 25","Q4 25","Q1 26"],
+      "revenue":          [155.67, 167.70, 175.42, 198.20, 168.50],
+      "gross_profit":     [76.20, 82.45, 87.10, 98.50, 84.30],
+      "operating_income": [18.40, 20.50, 22.85, 26.40, 21.80],
+      "net_income":       [13.49, 15.10, 16.85, 19.40, 16.20],
+      "ebitda":           [32.40, 35.20, 38.10, 42.50, 36.20],
+      "eps_diluted":      [1.27, 1.42, 1.58, 1.82, 1.52],
+      "gross_margin_pct": [49.0, 49.2, 49.7, 49.7, 50.0],
+      "op_margin_pct":    [11.8, 12.2, 13.0, 13.3, 12.9],
+      "fcf":              [4.80, 9.20, 11.50, 18.40, 5.20]
+    },
+    "consensus": {
+      "metric":    ["Revenue (Q+1)", "EPS (Q+1)", "AWS Rev FY26", "AWS Op Margin FY26", "Capex FY26"],
+      "bloomberg": [180.40, 1.62, 130.0, 36.5, 92.0],
+      "capstone":  [184.20, 1.71, 135.5, 38.0, 100.0],
+      "unit":      ["B$", "$", "B$", "%", "B$"]
+    },
+    "thesis": "Long. AWS reacceleration + retail margin expansion. Capex creep is the key debate."
+  },
+  "MRVL": {
+    "ticker": "MRVL", "name": "Marvell Technology", "sector": "Semis / Networking",
+    "marketCapB": 79.5, "currency": "USD", "fiscal_year_end": "January",
+    "pnl": {
+      "quarters": ["Q1 FY25","Q2 FY25","Q3 FY25","Q4 FY25","Q1 FY26"],
+      "revenue":          [1.16, 1.27, 1.52, 1.82, 1.95],
+      "gross_profit":     [0.55, 0.59, 0.71, 0.91, 0.99],
+      "operating_income": [0.05, 0.10, 0.18, 0.32, 0.39],
+      "net_income":       [-0.22, -0.19, -0.08, 0.20, 0.30],
+      "ebitda":           [0.32, 0.38, 0.51, 0.68, 0.78],
+      "eps_diluted":      [-0.25, -0.22, -0.09, 0.23, 0.34],
+      "gross_margin_pct": [47.4, 46.5, 46.7, 50.0, 50.8],
+      "op_margin_pct":    [4.3, 7.9, 11.8, 17.6, 20.0],
+      "fcf":              [0.18, 0.32, 0.43, 0.55, 0.62]
+    },
+    "consensus": {
+      "metric":    ["Revenue (Q+1)", "EPS (Q+1)", "AI Rev FY26", "EPS FY26", "Gross Margin FY26"],
+      "bloomberg": [2.10, 0.42, 2.50, 1.85, 51.5],
+      "capstone":  [2.18, 0.46, 2.85, 2.01, 52.2],
+      "unit":      ["B$", "$", "B$", "$", "%"]
+    },
+    "thesis": "Long. AWS Trainium 3 + Microsoft Maia ramp accelerating. Optical DSP share gains. Risk: customer concentration."
+  },
+  "CSCO": {
+    "ticker": "CSCO", "name": "Cisco Systems", "sector": "Networking",
+    "marketCapB": 318.0, "currency": "USD", "fiscal_year_end": "July",
+    "pnl": {
+      "quarters": ["Q2 FY25","Q3 FY25","Q4 FY25","Q1 FY26","Q2 FY26"],
+      "revenue":          [13.99, 14.15, 14.67, 14.20, 14.85],
+      "gross_profit":     [9.13, 9.20, 9.55, 9.30, 9.70],
+      "operating_income": [3.85, 3.92, 4.20, 4.05, 4.32],
+      "net_income":       [2.43, 2.50, 2.72, 2.65, 2.85],
+      "ebitda":           [4.35, 4.42, 4.70, 4.55, 4.80],
+      "eps_diluted":      [0.61, 0.62, 0.68, 0.66, 0.71],
+      "gross_margin_pct": [65.3, 65.0, 65.1, 65.5, 65.3],
+      "op_margin_pct":    [27.5, 27.7, 28.6, 28.5, 29.1],
+      "fcf":              [3.20, 3.45, 3.80, 3.10, 3.95]
+    },
+    "consensus": {
+      "metric":    ["Revenue (Q+1)", "EPS (Q+1)", "Revenue FY26", "EPS FY26", "AI Order Backlog"],
+      "bloomberg": [15.10, 0.73, 60.2, 2.85, 1.20],
+      "capstone":  [15.30, 0.75, 61.0, 2.92, 1.50],
+      "unit":      ["B$", "$", "B$", "$", "B$"]
+    },
+    "thesis": "Modest long. Splunk synergies + AI infra orders. Risk: Arista share gains in hyperscaler."
+  },
+  "AMAT": {
+    "ticker": "AMAT", "name": "Applied Materials", "sector": "Semicap Equipment",
+    "marketCapB": 285.0, "currency": "USD", "fiscal_year_end": "October",
+    "pnl": {
+      "quarters": ["Q1 FY25","Q2 FY25","Q3 FY25","Q4 FY25","Q1 FY26"],
+      "revenue":          [7.17, 7.10, 6.78, 7.05, 7.45],
+      "gross_profit":     [3.50, 3.45, 3.30, 3.42, 3.65],
+      "operating_income": [2.20, 2.15, 2.05, 2.18, 2.35],
+      "net_income":       [1.72, 1.68, 1.62, 1.74, 1.90],
+      "ebitda":           [2.45, 2.42, 2.30, 2.45, 2.62],
+      "eps_diluted":      [2.13, 2.09, 2.02, 2.18, 2.39],
+      "gross_margin_pct": [48.8, 48.6, 48.7, 48.5, 49.0],
+      "op_margin_pct":    [30.7, 30.3, 30.2, 30.9, 31.5],
+      "fcf":              [1.85, 1.95, 2.10, 2.30, 2.05]
+    },
+    "consensus": {
+      "metric":    ["Revenue (Q+1)", "EPS (Q+1)", "Revenue FY26", "EPS FY26", "China % FY26"],
+      "bloomberg": [7.65, 2.45, 31.2, 9.85, 35.0],
+      "capstone":  [7.82, 2.52, 32.0, 10.10, 32.0],
+      "unit":      ["B$", "$", "B$", "$", "%"]
+    },
+    "thesis": "Long. Leading-edge logic + DRAM HBM tooling. China headwinds priced in. Risk: WFE cycle peak."
+  },
+  "ANET": {
+    "ticker": "ANET", "name": "Arista Networks", "sector": "Cloud Networking",
+    "marketCapB": 168.0, "currency": "USD", "fiscal_year_end": "December",
+    "pnl": {
+      "quarters": ["Q1 25","Q2 25","Q3 25","Q4 25","Q1 26"],
+      "revenue":          [1.91, 2.05, 2.20, 2.42, 2.55],
+      "gross_profit":     [1.27, 1.36, 1.45, 1.59, 1.68],
+      "operating_income": [0.81, 0.88, 0.96, 1.07, 1.13],
+      "net_income":       [0.71, 0.76, 0.83, 0.92, 0.98],
+      "ebitda":           [0.85, 0.92, 1.00, 1.11, 1.18],
+      "eps_diluted":      [0.55, 0.59, 0.65, 0.72, 0.77],
+      "gross_margin_pct": [66.5, 66.3, 65.9, 65.7, 65.9],
+      "op_margin_pct":    [42.4, 42.9, 43.6, 44.2, 44.3],
+      "fcf":              [0.78, 0.84, 0.90, 1.02, 0.95]
+    },
+    "consensus": {
+      "metric":    ["Revenue (Q+1)", "EPS (Q+1)", "Revenue FY26", "EPS FY26", "AI Backend Win Rate"],
+      "bloomberg": [2.65, 0.80, 10.50, 3.18, 25.0],
+      "capstone":  [2.78, 0.85, 11.20, 3.35, 32.0],
+      "unit":      ["B$", "$", "B$", "$", "%"]
+    },
+    "thesis": "Long. Hyperscaler AI back-end network share gains > consensus. Etherlink CPO ramp 2026."
+  },
+  "UBER": {
+    "ticker": "UBER", "name": "Uber Technologies", "sector": "Ride-Share / Delivery",
+    "marketCapB": 158.0, "currency": "USD", "fiscal_year_end": "December",
+    "pnl": {
+      "quarters": ["Q1 25","Q2 25","Q3 25","Q4 25","Q1 26"],
+      "revenue":          [11.53, 12.05, 12.85, 13.42, 12.90],
+      "gross_profit":     [4.15, 4.38, 4.72, 5.00, 4.78],
+      "operating_income": [1.17, 1.35, 1.62, 1.85, 1.72],
+      "net_income":       [0.85, 1.05, 1.32, 1.55, 1.42],
+      "ebitda":           [1.85, 2.05, 2.30, 2.55, 2.42],
+      "eps_diluted":      [0.40, 0.50, 0.62, 0.73, 0.67],
+      "gross_margin_pct": [36.0, 36.3, 36.7, 37.3, 37.1],
+      "op_margin_pct":    [10.1, 11.2, 12.6, 13.8, 13.3],
+      "fcf":              [1.65, 1.85, 2.10, 2.40, 2.05]
+    },
+    "consensus": {
+      "metric":    ["Revenue (Q+1)", "EPS (Q+1)", "EBITDA FY26", "Mobility Bookings FY26", "Delivery Bookings FY26"],
+      "bloomberg": [13.85, 0.78, 10.50, 95.0, 95.5],
+      "capstone":  [14.20, 0.83, 11.20, 98.5, 99.0],
+      "unit":      ["B$", "$", "B$", "B$", "B$"]
+    },
+    "thesis": "Long. AV partnerships (Waymo) optionality + delivery margins inflecting. Risk: Tesla robotaxi rollout."
+  }
+}

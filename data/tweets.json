@@ -1,0 +1,76 @@
+{
+  "_schema": {
+    "description": "Per-ticker tweet feed surfaced in the Research tab. Sentiment: bull | bear | neutral. ts is ISO 8601. Add as many entries per ticker as needed.",
+    "example": {
+      "author": "Display Name",
+      "handle": "twitterhandle",
+      "verified": true,
+      "ts": "2026-05-09T14:23:00Z",
+      "sentiment": "bull",
+      "text": "tweet body...",
+      "engagement": { "likes": 342, "rt": 78, "replies": 21 }
+    }
+  },
+  "NVDA": [
+    {"author":"Beth Kindig","handle":"BethKindig","verified":true,"ts":"2026-05-09T18:42:00Z","sentiment":"bull","text":"NVDA Blackwell allocation checks for Q2 stronger than buy-side modeling. Revenue beat setup intact, GM the only question.","engagement":{"likes":2840,"rt":612,"replies":188}},
+    {"author":"Stacy Rasgon","handle":"SRasgonBernstein","verified":true,"ts":"2026-05-09T13:15:00Z","sentiment":"neutral","text":"Hyperscaler capex commentary mixed this earnings season. NVDA pull-through still healthy but watch ASIC mix shift @ AVGO/MRVL.","engagement":{"likes":1240,"rt":280,"replies":95}},
+    {"author":"Dylan Patel","handle":"dylan522p","verified":true,"ts":"2026-05-08T22:01:00Z","sentiment":"bull","text":"GB200 NVL72 systems shipping ahead of plan. CoWoS supply unlocked in Q1. Bears running out of bear cases.","engagement":{"likes":4150,"rt":820,"replies":310}},
+    {"author":"Gavin Baker","handle":"GavinSBaker","verified":true,"ts":"2026-05-08T15:30:00Z","sentiment":"bull","text":"Sovereign AI deals signed in Q1 represent ~$8B+ in 2026 revenue commitments not in consensus. Underappreciated catalyst.","engagement":{"likes":3220,"rt":540,"replies":210}},
+    {"author":"Short Squeeze Anonymous","handle":"squeezealert","verified":false,"ts":"2026-05-07T12:08:00Z","sentiment":"bear","text":"$NVDA chart looks toppy. RSI extended, hyperscaler digestion narrative coming back into focus on next print.","engagement":{"likes":480,"rt":95,"replies":62}}
+  ],
+  "AVGO": [
+    {"author":"Tae Kim","handle":"firstadopter","verified":true,"ts":"2026-05-09T16:22:00Z","sentiment":"bull","text":"AVGO Tomahawk 6 + Jericho 3-AI traction at hyperscalers. Networking attach to ASIC deals being underestimated by sell side.","engagement":{"likes":1640,"rt":380,"replies":120}},
+    {"author":"Hock Tan Watch","handle":"hockwatch","verified":false,"ts":"2026-05-09T11:05:00Z","sentiment":"bull","text":"Three new ASIC customers in Hock's $60B-90B 2027 SAM commentary. Math implies ~$25B AI rev in FY26 vs Street ~$22B.","engagement":{"likes":920,"rt":215,"replies":78}},
+    {"author":"Capital Allocator","handle":"capalloc","verified":true,"ts":"2026-05-08T19:45:00Z","sentiment":"neutral","text":"VMware re-platform basically done. Software gross margin should hit 90% exit-2026. Modest tailwind from here.","engagement":{"likes":540,"rt":105,"replies":42}},
+    {"author":"Bear Trap","handle":"semibear","verified":false,"ts":"2026-05-07T20:18:00Z","sentiment":"bear","text":"Wireless segment weak again. Apple content per phone declining. AI alone won't carry valuation if non-AI inflects negative.","engagement":{"likes":380,"rt":78,"replies":55}}
+  ],
+  "META": [
+    {"author":"Ben Thompson","handle":"benthompson","verified":true,"ts":"2026-05-09T17:30:00Z","sentiment":"bull","text":"Llama 4 multimodal driving real Reels engagement lift. Ad revenue per minute on Reels finally at parity with feed.","engagement":{"likes":3850,"rt":920,"replies":410}},
+    {"author":"Mark Mahaney","handle":"MarkMahaneyERS","verified":true,"ts":"2026-05-09T13:05:00Z","sentiment":"bull","text":"META checks: Q2 ad pricing still firming +mid-single-digits. AI-targeting attribution improvements visible in advertiser ROAS.","engagement":{"likes":1850,"rt":420,"replies":150}},
+    {"author":"Reality Labs Skeptic","handle":"vrbear","verified":false,"ts":"2026-05-08T22:40:00Z","sentiment":"bear","text":"Reality Labs burn now $20B+ run-rate. Quest 4 unit data weak. When does Zuck pull the plug?","engagement":{"likes":1120,"rt":280,"replies":340}},
+    {"author":"Ad Tech Insider","handle":"adtechpro","verified":false,"ts":"2026-05-08T14:12:00Z","sentiment":"bull","text":"Andromeda (META's recsys overhaul) showing measurable conversion lift across DR campaigns. ROI talk in Q1 call was real.","engagement":{"likes":820,"rt":190,"replies":68}}
+  ],
+  "AAPL": [
+    {"author":"Ming-Chi Kuo","handle":"mingchikuo","verified":true,"ts":"2026-05-09T08:40:00Z","sentiment":"neutral","text":"iPhone 17 Pro shipment forecast unchanged at ~95M units H2'26. iPhone 17 Air sell-through softer than internal targets.","engagement":{"likes":5200,"rt":1180,"replies":520}},
+    {"author":"Gene Munster","handle":"munster_gene","verified":true,"ts":"2026-05-09T15:18:00Z","sentiment":"bull","text":"Services revenue trajectory + 3% installed base growth = +9-10% rev CAGR through 2027. Multiple should rerate higher.","engagement":{"likes":1240,"rt":280,"replies":95}},
+    {"author":"China Tech Watch","handle":"chinatech","verified":false,"ts":"2026-05-08T20:30:00Z","sentiment":"bear","text":"AAPL China unit data Q1: -8% YoY. Huawei Mate 80 series taking high-end share. Apple Intelligence still not approved on Mainland.","engagement":{"likes":920,"rt":250,"replies":180}},
+    {"author":"Sam Ro","handle":"SamRo","verified":true,"ts":"2026-05-08T11:05:00Z","sentiment":"neutral","text":"AAPL buyback: $110B authorized, ~$26B executed Q1. Pace consistent with management's 'cash neutral over time' guide.","engagement":{"likes":680,"rt":140,"replies":48}}
+  ],
+  "GOOG": [
+    {"author":"Sundar Pichai Watch","handle":"sundarwatch","verified":false,"ts":"2026-05-09T19:12:00Z","sentiment":"bull","text":"Cloud growth re-accelerated to 35% YoY in Q1 vs 32% expected. Gemini 3 enterprise wins finally showing up in numbers.","engagement":{"likes":1840,"rt":420,"replies":160}},
+    {"author":"Search Engine Land","handle":"sengineland","verified":true,"ts":"2026-05-09T14:25:00Z","sentiment":"bear","text":"AI Overviews now on >50% of queries. Click-through to publishers down 30% YoY. DOJ remedies hearing in June.","engagement":{"likes":2240,"rt":580,"replies":380}},
+    {"author":"DeepMind Insider","handle":"dminsider","verified":false,"ts":"2026-05-08T22:50:00Z","sentiment":"bull","text":"Gemini 3 Ultra benchmarks leaked. Beats GPT-5 on coding + math by mid-single-digits. Google has the model lead now.","engagement":{"likes":3100,"rt":720,"replies":290}}
+  ],
+  "MSFT": [
+    {"author":"Brent Bracelin","handle":"bbracelin","verified":true,"ts":"2026-05-09T16:50:00Z","sentiment":"bull","text":"MSFT Azure consumption growth holding ~32-34%. Copilot M365 attach now ~25% of E5 base, well ahead of plan.","engagement":{"likes":1280,"rt":290,"replies":110}},
+    {"author":"OpenAI Watch","handle":"oaiwatch","verified":false,"ts":"2026-05-09T10:15:00Z","sentiment":"neutral","text":"OpenAI restructuring revenue share with MSFT down to 15% (from 20%). Modest hit to FY27 model but offset by Azure burn-down.","engagement":{"likes":1640,"rt":380,"replies":210}},
+    {"author":"Capex Tracker","handle":"capextracker","verified":false,"ts":"2026-05-08T18:30:00Z","sentiment":"bear","text":"MSFT capex annualizing $95B+ in FY26. ROI math gets harder if Azure decel from here. Need 28%+ growth to clear hurdle.","engagement":{"likes":920,"rt":220,"replies":150}}
+  ],
+  "AMZN": [
+    {"author":"AWS Insider","handle":"awsinsider","verified":false,"ts":"2026-05-09T17:40:00Z","sentiment":"bull","text":"Trainium2 demand backlog now 2 quarters out. Bedrock spend up 4x YoY. AWS finally getting AI workload share back from Azure.","engagement":{"likes":1450,"rt":340,"replies":120}},
+    {"author":"Retail Margins","handle":"retailops","verified":false,"ts":"2026-05-09T12:08:00Z","sentiment":"bull","text":"AMZN Q1 retail op margin 6.8% vs 5.5% Street. Robotics fulfillment + advertising flywheel. NA segment finally running.","engagement":{"likes":820,"rt":195,"replies":78}},
+    {"author":"Andy Jassy Tracker","handle":"jassywatch","verified":false,"ts":"2026-05-08T15:20:00Z","sentiment":"neutral","text":"Project Kuiper capex +$8B in 2026 but no offsetting revenue until 2027. Timing of monetization still murky.","engagement":{"likes":420,"rt":105,"replies":62}}
+  ],
+  "MRVL": [
+    {"author":"Semis Anon","handle":"semisanon","verified":false,"ts":"2026-05-09T20:15:00Z","sentiment":"bull","text":"MRVL Trainium 3 silicon ready, AWS production ramp Q3. Inferentia partnership talks ongoing — could be the next leg.","engagement":{"likes":1240,"rt":290,"replies":105}},
+    {"author":"Optical DSP","handle":"opticaldsp","verified":false,"ts":"2026-05-09T11:42:00Z","sentiment":"bull","text":"800G DSP design wins at 4 hyperscalers now. 1.6T sampling Q4. Optical alone could be $3B revenue in FY27.","engagement":{"likes":680,"rt":160,"replies":48}},
+    {"author":"Concentration Risk","handle":"riskpro","verified":false,"ts":"2026-05-08T16:05:00Z","sentiment":"bear","text":"AMZN now 35%+ of MRVL revenue. Single-customer concentration is the risk no one wants to talk about.","engagement":{"likes":540,"rt":120,"replies":85}}
+  ],
+  "CSCO": [
+    {"author":"Network Insider","handle":"netinsider","verified":false,"ts":"2026-05-09T14:05:00Z","sentiment":"bull","text":"CSCO AI infra orders ~$1.3B exiting Q2. Tracking ahead of $1B FY exit guide. Splunk attach finally showing up.","engagement":{"likes":420,"rt":98,"replies":35}},
+    {"author":"Arista Bull","handle":"anetbull","verified":false,"ts":"2026-05-09T09:30:00Z","sentiment":"bear","text":"CSCO losing share at every hyperscaler to ANET. Enterprise still durable but secular shift continues.","engagement":{"likes":380,"rt":85,"replies":62}}
+  ],
+  "AMAT": [
+    {"author":"WFE Tracker","handle":"wfetracker","verified":false,"ts":"2026-05-09T13:22:00Z","sentiment":"bull","text":"AMAT HBM tooling backlog firming. SK Hynix + Micron HBM4 capacity adds support 2026 growth above WFE peers.","engagement":{"likes":640,"rt":150,"replies":48}},
+    {"author":"China Risk","handle":"chinasemis","verified":false,"ts":"2026-05-09T08:15:00Z","sentiment":"neutral","text":"AMAT China revenue 35% in FY25. Reductions to <30% in FY26 baked in. Watch for any new export control surprises.","engagement":{"likes":380,"rt":90,"replies":55}}
+  ],
+  "ANET": [
+    {"author":"AI Networking","handle":"ainet","verified":false,"ts":"2026-05-09T15:40:00Z","sentiment":"bull","text":"ANET Etherlink share at hyperscaler #2 now confirmed. Back-end network attach rate climbing. Multiple expansion warranted.","engagement":{"likes":890,"rt":210,"replies":75}},
+    {"author":"NVDA Spectrum-X","handle":"spectrum","verified":false,"ts":"2026-05-09T11:18:00Z","sentiment":"bear","text":"NVDA Spectrum-X taking share at meta-class deployments. ANET back-end TAM may compress over 2-3 years.","engagement":{"likes":480,"rt":120,"replies":98}}
+  ],
+  "UBER": [
+    {"author":"Mobility Insider","handle":"mobinsider","verified":false,"ts":"2026-05-09T16:32:00Z","sentiment":"bull","text":"Uber+Waymo expansion to LA, Phoenix, Austin all live now. Hybrid AV/human dispatch model working — orders +40% in pilot zones.","engagement":{"likes":1240,"rt":295,"replies":120}},
+    {"author":"Tesla Bull","handle":"tslabull","verified":false,"ts":"2026-05-09T09:50:00Z","sentiment":"bear","text":"Tesla Robotaxi launch July 2026. Uber's AV partnership story gets harder when supply disintermediates the network.","engagement":{"likes":2840,"rt":680,"replies":520}},
+    {"author":"Delivery Margins","handle":"deliverymargins","verified":false,"ts":"2026-05-08T14:25:00Z","sentiment":"bull","text":"UBER Eats take rate 17.8% in Q1, +60bps YoY. Ad load + grocery attach driving structural margin.","engagement":{"likes":520,"rt":118,"replies":42}}
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "_schema": {
+    "description": "Per-ticker inbox digest surfaced in the Research tab. Replace with your real research inbox export. ts is ISO 8601. Tags drive the colored chips.",
+    "example": {
+      "from": "analyst@morganstanley.com",
+      "from_name": "Erik Woodring (MS)",
+      "subject": "AAPL - Bullish into iPhone 17 launch",
+      "ts": "2026-05-08T08:15:00Z",
+      "preview": "Quick note from MS - we are raising PT...",
+      "tags": ["sell-side", "note", "PT raise"],
+      "priority": "high"
+    }
+  },
+  "NVDA": [
+    {"from":"erik.woodring@ms.com","from_name":"Erik Woodring (MS)","subject":"NVDA - Q1 Preview: Raising estimates ahead of print","ts":"2026-05-09T07:42:00Z","preview":"We are raising our Q1 revenue estimate to $44.5B (vs Street $43.8B) on stronger Blackwell shipment cadence per supply chain checks. Maintain OW, PT $185.","tags":["sell-side","preview","PT raise"],"priority":"high"},
+    {"from":"sales-trading@gs.com","from_name":"GS Sales Trading","subject":"NVDA flow color - HF rotating long","ts":"2026-05-09T13:18:00Z","preview":"Notable HF additions to NVDA in last 48h. Flow skew 2.4:1 long. Index rebalance buyers seen on close. Vol modestly bid into print.","tags":["sales","flow"],"priority":"medium"},
+    {"from":"rasgon.team@bernstein.com","from_name":"Stacy Rasgon (Bernstein)","subject":"Hyperscaler capex tracker - April update","ts":"2026-05-08T16:30:00Z","preview":"Aggregate hyperscaler capex run-rate now $410B annualized, +28% YoY. NVDA share of compute spend ~58% (stable). AMD inflecting from 4% to ~7% by year-end.","tags":["sell-side","industry"],"priority":"medium"},
+    {"from":"capstone-research@internal","from_name":"JM (Internal)","subject":"NVDA - my channel checks notes","ts":"2026-05-08T10:05:00Z","preview":"Two big enterprise deals confirmed (one Telco-EU, one Sovereign-ME). Allocations TBD. Sustains FY26 estimates.","tags":["internal","channel-check"],"priority":"high"},
+    {"from":"melius-research@melius.com","from_name":"Ben Reitzes (Melius)","subject":"NVDA - Buy reiterated, $190 PT","ts":"2026-05-07T19:22:00Z","preview":"Believe consensus FY26 EPS still ~10% too low. Sovereign AI tailwind alone worth $0.30+ in incremental EPS.","tags":["sell-side","note"],"priority":"medium"}
+  ],
+  "AVGO": [
+    {"from":"harlan.sur@jpm.com","from_name":"Harlan Sur (JPM)","subject":"AVGO - 3rd ASIC customer confirmed","ts":"2026-05-09T11:05:00Z","preview":"Industry checks confirm AVGO has signed a 3rd hyperscale ASIC customer (likely AAPL or ORCL). FY27 AI rev path now $35-40B vs Hock's $60-90B SAM.","tags":["sell-side","note"],"priority":"high"},
+    {"from":"sales-trading@ms.com","from_name":"MS Sales Trading","subject":"AVGO unusual options activity","ts":"2026-05-09T14:50:00Z","preview":"Sept $400 calls active, ~12k contracts vs avg 2k. Skew flattening. Possible buyer ahead of OpenAI ASIC announce rumored late month.","tags":["sales","flow"],"priority":"medium"},
+    {"from":"capstone-research@internal","from_name":"JM (Internal)","subject":"AVGO model update + thesis review","ts":"2026-05-08T17:30:00Z","preview":"Updated model with Q2 estimates. Carrying $26.5B AI rev FY26 vs cons $22B. Trim if approaches $370.","tags":["internal","model"],"priority":"high"}
+  ],
+  "META": [
+    {"from":"mark.mahaney@evercore.com","from_name":"Mark Mahaney (Evercore)","subject":"META - Q2 ad checks tracking ahead","ts":"2026-05-09T08:15:00Z","preview":"Q2 ad pricing +5-7% per our agency checks vs Street modeling +3%. AI targeting attribution clearly working. Reiterate OW, raising PT to $720.","tags":["sell-side","PT raise"],"priority":"high"},
+    {"from":"brian.nowak@ms.com","from_name":"Brian Nowak (MS)","subject":"META - Reels/AI deep dive","ts":"2026-05-09T13:40:00Z","preview":"Reels DAU/MAU + monetization gap to Feed now closed per our tracker. Andromeda recsys driving meaningful CPM lift. FY26 ad rev path $200B+.","tags":["sell-side","deep-dive"],"priority":"medium"},
+    {"from":"capstone-research@internal","from_name":"JM (Internal)","subject":"META - position sizing thoughts","ts":"2026-05-08T19:12:00Z","preview":"Currently 4.5% NAV. Considering trim to 3.5% on Reality Labs capex creep concerns + valuation at 24x FY26.","tags":["internal","sizing"],"priority":"high"},
+    {"from":"squad-research@redburn.com","from_name":"Redburn TMT","subject":"META - VR unit data tracker","ts":"2026-05-08T11:25:00Z","preview":"Quest 4 unit shipments through April: 1.8M, ~25% below internal targets. Reality Labs op loss path widening.","tags":["sell-side","note","caution"],"priority":"medium"}
+  ],
+  "AAPL": [
+    {"from":"erik.woodring@ms.com","from_name":"Erik Woodring (MS)","subject":"AAPL - iPhone 17 build forecast unchanged","ts":"2026-05-09T08:30:00Z","preview":"Maintain 96M unit forecast for iPhone 17 H2'26. Pro mix improved (+2pts), partially offsetting Air softness. PT $235.","tags":["sell-side","note"],"priority":"medium"},
+    {"from":"krish.sankar@td.com","from_name":"Krish Sankar (TD)","subject":"AAPL - Services growth durability","ts":"2026-05-09T12:48:00Z","preview":"Services FY26 trajectory $115B+ achievable. Search deal renegotiation overhang fades by FY27. Buy reiterated.","tags":["sell-side","note"],"priority":"medium"},
+    {"from":"capstone-research@internal","from_name":"FM (Internal)","subject":"AAPL - China unit data concerning","ts":"2026-05-08T20:55:00Z","preview":"Counterpoint April China data: AAPL units -8% YoY. Huawei Mate 80 taking premium share. Q3 setup at risk.","tags":["internal","caution"],"priority":"high"},
+    {"from":"sales-trading@gs.com","from_name":"GS Sales Trading","subject":"AAPL - Pre-earnings positioning","ts":"2026-05-08T15:20:00Z","preview":"Net positioning balanced. Vol bid 5pts above realized. Skew flat. No clear directional signal from flows.","tags":["sales","flow"],"priority":"low"}
+  ],
+  "GOOG": [
+    {"from":"doug.anmuth@jpm.com","from_name":"Doug Anmuth (JPM)","subject":"GOOG - Cloud reaccelerating, raising PT","ts":"2026-05-09T09:10:00Z","preview":"Cloud Q1 35% YoY > Street 32%. Backlog $130B+ (+30% YoY). Raising PT to $340. OW.","tags":["sell-side","PT raise"],"priority":"high"},
+    {"from":"capstone-research@internal","from_name":"JM (Internal)","subject":"GOOG - DOJ remedies hearing prep","ts":"2026-05-09T11:25:00Z","preview":"Remedies hearing scheduled June 12. Most punitive outcome (forced Chrome divestiture) low probability. Search payment ban more likely.","tags":["internal","regulatory"],"priority":"high"},
+    {"from":"benedict.evans@bf.com","from_name":"Benedict Evans","subject":"GOOG - Search disruption framework","ts":"2026-05-08T16:48:00Z","preview":"AI Overviews CTR data shows -30% click-through to publishers. Monetization on AI surfaces still 60-70% of traditional. Watch carefully.","tags":["external","framework"],"priority":"medium"}
+  ],
+  "MSFT": [
+    {"from":"keith.weiss@ms.com","from_name":"Keith Weiss (MS)","subject":"MSFT - Azure consumption tracker","ts":"2026-05-09T08:55:00Z","preview":"Azure consumption growth holding 32-34% per our partner survey. Copilot M365 attach to E5 base now ~25%. Raising FY26 EPS by 3%.","tags":["sell-side","tracker"],"priority":"high"},
+    {"from":"capstone-research@internal","from_name":"JM (Internal)","subject":"MSFT - OpenAI restructure impact","ts":"2026-05-09T14:18:00Z","preview":"Rev share down to 15% from 20%. Net impact ~$1.50 to FY27 EPS. Capex commitment also reduced. Wash on equity value.","tags":["internal","model"],"priority":"high"},
+    {"from":"sales-trading@ms.com","from_name":"MS Sales Trading","subject":"MSFT - LO buying pre-print","ts":"2026-05-08T16:00:00Z","preview":"Notable LO additions in last week. Net buyer 7 of last 10 sessions. Approaching all-time net long for our book.","tags":["sales","flow"],"priority":"medium"}
+  ],
+  "AMZN": [
+    {"from":"justin.post@bofa.com","from_name":"Justin Post (BofA)","subject":"AMZN - Retail margin inflection","ts":"2026-05-09T09:30:00Z","preview":"NA retail op margin 6.8% Q1 vs Street 5.5%. Robotics fulfillment + ads driving structural mix. Raising FY26 OI by 8%.","tags":["sell-side","PT raise"],"priority":"high"},
+    {"from":"capstone-research@internal","from_name":"JM (Internal)","subject":"AMZN - AWS Trainium commentary","ts":"2026-05-09T13:05:00Z","preview":"Trainium2 backlog 2 quarters out. Bedrock spend +4x YoY. AWS finally winning AI workload share back from Azure. Material upside to AWS estimates.","tags":["internal","channel-check"],"priority":"high"},
+    {"from":"jp.heim@ubs.com","from_name":"JP Heim (UBS)","subject":"AMZN - Kuiper capex creep","ts":"2026-05-08T17:42:00Z","preview":"Kuiper additional $8B capex in 2026. No offsetting revenue until 2027. Lowering FCF estimates 5%.","tags":["sell-side","caution"],"priority":"medium"}
+  ],
+  "MRVL": [
+    {"from":"harsh.kumar@piper.com","from_name":"Harsh Kumar (Piper)","subject":"MRVL - Trainium 3 ramp confirmed","ts":"2026-05-09T10:48:00Z","preview":"Channel checks confirm AWS Trainium 3 production ramp Q3'26. Implies $2.8B+ AI rev FY26 vs cons $2.5B. OW, PT $115.","tags":["sell-side","PT raise"],"priority":"high"},
+    {"from":"capstone-research@internal","from_name":"JM (Internal)","subject":"MRVL - concentration risk note","ts":"2026-05-09T14:20:00Z","preview":"AMZN now 35% of MRVL revenue. Any AWS slowdown or in-house silicon shift = material miss. Consider hedge via puts.","tags":["internal","risk"],"priority":"high"},
+    {"from":"matt.bryson@wedbush.com","from_name":"Matt Bryson (Wedbush)","subject":"MRVL - 1.6T DSP design wins","ts":"2026-05-08T15:30:00Z","preview":"1.6T optical DSP sampling at 4 hyperscalers. Production ramp 2027. Optical alone $3B+ FY27 rev path.","tags":["sell-side","note"],"priority":"medium"}
+  ],
+  "CSCO": [
+    {"from":"meta.marshall@ms.com","from_name":"Meta Marshall (MS)","subject":"CSCO - AI orders update","ts":"2026-05-09T11:15:00Z","preview":"AI infra orders ~$1.3B exit Q2, ahead of $1B FY exit guide. Splunk attach at 22% of base, building. EW maintained.","tags":["sell-side","tracker"],"priority":"medium"},
+    {"from":"capstone-research@internal","from_name":"JM (Internal)","subject":"CSCO - thesis review","ts":"2026-05-08T18:40:00Z","preview":"Modest long thesis still works. Splunk synergies tracking. Risk: ANET share gains in cloud. Position sizing: 1.5%.","tags":["internal","sizing"],"priority":"medium"}
+  ],
+  "AMAT": [
+    {"from":"krish.sankar@td.com","from_name":"Krish Sankar (TD)","subject":"AMAT - HBM tooling tracker","ts":"2026-05-09T09:48:00Z","preview":"HBM tooling backlog firming. SK Hynix + Micron HBM4 capacity adds support 2026 growth. Buy reiterated, PT $260.","tags":["sell-side","tracker"],"priority":"medium"},
+    {"from":"capstone-research@internal","from_name":"JM (Internal)","subject":"AMAT - China exposure review","ts":"2026-05-08T16:18:00Z","preview":"China rev 35% FY25, modeling 30% FY26 already. Any new export control surprise = downside. Position 2.0% NAV.","tags":["internal","risk"],"priority":"medium"}
+  ],
+  "ANET": [
+    {"from":"amit.daryanani@evercore.com","from_name":"Amit Daryanani (Evercore)","subject":"ANET - Etherlink hyperscaler #2 win","ts":"2026-05-09T10:30:00Z","preview":"Industry sources confirm ANET Etherlink design win at hyperscaler #2 (likely META). Back-end TAM expanding. PT $145.","tags":["sell-side","PT raise"],"priority":"high"},
+    {"from":"capstone-research@internal","from_name":"JM (Internal)","subject":"ANET - Spectrum-X risk","ts":"2026-05-09T14:55:00Z","preview":"NVDA Spectrum-X taking share at meta-class deployments. ANET share at hyperscaler #1 may compress 2-3 yrs. Trim above $145.","tags":["internal","risk"],"priority":"high"}
+  ],
+  "UBER": [
+    {"from":"justin.post@bofa.com","from_name":"Justin Post (BofA)","subject":"UBER - Waymo expansion details","ts":"2026-05-09T11:50:00Z","preview":"Uber+Waymo live LA, Phoenix, Austin. Order volume +40% in pilot zones. Hybrid AV/human dispatch model proving out.","tags":["sell-side","note"],"priority":"high"},
+    {"from":"capstone-research@internal","from_name":"JM (Internal)","subject":"UBER - Tesla Robotaxi competitive analysis","ts":"2026-05-09T15:30:00Z","preview":"Tesla Robotaxi launches July 2026. Initial fleet ~5k vehicles. UBER's network effect should hold but watch supply leakage.","tags":["internal","competitive"],"priority":"high"},
+    {"from":"brian.nowak@ms.com","from_name":"Brian Nowak (MS)","subject":"UBER - Delivery margins inflecting","ts":"2026-05-08T16:42:00Z","preview":"Eats take rate 17.8% +60bps YoY. Ad load + grocery driving structural margin. FY26 EBITDA $11B+ achievable.","tags":["sell-side","note"],"priority":"medium"}
+  ]
+}
