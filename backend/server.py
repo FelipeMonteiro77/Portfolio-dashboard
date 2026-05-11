@@ -23,7 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .routes import chart, consensus, emails, health, news, prices, tickers, tweets
+from .routes import chart, consensus, emails, health, prices, repository, tickers, tweets
 from . import universe
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -57,7 +57,7 @@ app.include_router(consensus.router, prefix="/api")
 app.include_router(emails.router, prefix="/api")
 app.include_router(tweets.router, prefix="/api")
 app.include_router(chart.router, prefix="/api")
-app.include_router(news.router, prefix="/api")
+app.include_router(repository.router, prefix="/api")
 
 
 # Static frontend
