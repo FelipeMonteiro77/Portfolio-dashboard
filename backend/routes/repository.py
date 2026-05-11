@@ -110,6 +110,79 @@ def _load_email_cache() -> list[dict]:
         return []
 
 
+def _ticker_snippets(e: dict, tickers: list[str], *, around: int = 160) -> dict[str, str]:
+    """Return a dict {ticker -> body snippet around the mention} for each matched ticker.
+
+    Looks at the body first (where buried mentions live), then falls back to
+    subject. The frontend uses this to show *why* an email matched a given
+    ticker when the user clicks a ticker filter chip."""
+    body_clean = " ".join((e.get("body") or "").split())
+    subj_clean = " ".join((e.get("subject") or "").split())
+    out: dict[str, str] = {}
+
+    # Build alias terms to search for per ticker
+    for t in tickers:
+        entry = universe.get(t)
+        terms = [t] + (entry["search_aliases"]["email"] if entry else [])
+        # Find first occurrence of any alias in body, else subject.
+        found_idx = -1
+        found_term = ""
+        source = body_clean
+        lower = body_clean.lower()
+        for term in terms:
+            tl = term.lower()
+            if not tl:
+                continue
+            i = lower.find(tl)
+            if i >= 0 and (found_idx == -1 or i < found_idx):
+                found_idx = i
+                found_term = term
+        if found_idx == -1:
+            # Try subject
+            source = subj_clean
+            lower = subj_clean.lower()
+            for term in terms:
+                tl = term.lower()
+                if not tl:
+                    continue
+                i = lower.find(tl)
+                if i >= 0 and (found_idx == -1 or i < found_idx):
+                    found_idx = i
+                    found_term = term
+        if found_idx == -1:
+            continue
+        start = max(0, found_idx - around // 2)
+        end = min(len(source), found_idx + len(found_term) + around // 2)
+        snippet = source[start:end]
+        prefix = "…" if start > 0 else ""
+        suffix = "…" if end < len(source) else ""
+        out[t] = prefix + snippet + suffix
+    return out
+
+
+def _build_preview(e: dict, q_lower: str | None = None, *, around: int = 180) -> str:
+    """Show a snippet centred on the search match (if any), else the body opener.
+
+    Falls back to the existing body_preview / first 200 chars of body when no
+    query matches. The snippet is bracketed with `…` when truncated."""
+    body = e.get("body") or ""
+    body_clean = " ".join(body.split())  # collapse whitespace / newlines
+    if q_lower and q_lower.strip():
+        idx = body_clean.lower().find(q_lower.strip())
+        if idx >= 0:
+            start = max(0, idx - around // 2)
+            end = min(len(body_clean), idx + len(q_lower) + around // 2)
+            snippet = body_clean[start:end]
+            prefix = "…" if start > 0 else ""
+            suffix = "…" if end < len(body_clean) else ""
+            return prefix + snippet + suffix
+    # No match (or no query) — fall back to the standard preview field.
+    pv = (e.get("body_preview") or "").strip()
+    if pv:
+        return pv
+    return (body_clean[:260] + ("…" if len(body_clean) > 260 else "")) if body_clean else ""
+
+
 # ── /api/repo/meta ───────────────────────────────────────────────────────
 @router.get("/repo/meta")
 def repo_meta() -> dict[str, Any]:
@@ -271,8 +344,9 @@ def repo_emails(
                 continue
         if f_lower and f_lower not in (e.get("folder") or "").lower():
             continue
+        body = e.get("body") or ""
         if q_lower:
-            haystack = ((e.get("subject") or "") + " " + (e.get("body_preview") or "") + " " + (e.get("body") or "")).lower()
+            haystack = ((e.get("subject") or "") + " " + (e.get("body_preview") or "") + " " + body).lower()
             if q_lower not in haystack:
                 continue
         out.append({
@@ -281,10 +355,10 @@ def repo_emails(
             "sender": e.get("sender") or "",
             "sender_email": e.get("sender_email") or "",
             "subject": e.get("subject") or "",
-            "preview": e.get("body_preview") or "",
+            "preview": _build_preview(e, q_lower),
             "folder": e.get("folder") or "",
             "tickers": universe.match_text(
-                (e.get("subject") or "") + " " + (e.get("body_preview") or ""),
+                (e.get("subject") or "") + " " + (e.get("body_preview") or "") + " " + body,
                 kind="email",
             ),
         })
@@ -376,9 +450,14 @@ def _email_relevance(e: dict, now: datetime) -> tuple[float, list[str]] | None:
         age_h = max(0.0, (now - ts).total_seconds() / 3600.0)
         recency = 5.0 / (1 + age_h / 12.0)   # emails decay faster than tweets
 
-    haystack = subj + " " + (e.get("body_preview") or "")
+    # Match on subject + preview + body. Body matches surface spec-sales
+    # commentary buried mid-email where the subject was a generic "Daily wrap".
+    haystack = subj + " " + (e.get("body_preview") or "") + " " + (e.get("body") or "")
     tickers = universe.match_text(haystack, kind="email")
+    body_only_hits = tickers and not universe.match_text(subj, kind="email")
     ticker_bonus = 4.0 if tickers else 0.0
+    if body_only_hits:
+        ticker_bonus -= 1.0  # subject-mentioned tickers rank slightly higher
 
     return recency + ticker_bonus + 1.0, tickers
 
@@ -449,7 +528,8 @@ def repo_feed(
                 "sender": e.get("sender") or "",
                 "sender_email": e.get("sender_email") or "",
                 "subject": e.get("subject") or "",
-                "preview": e.get("body_preview") or "",
+                "preview": _build_preview(e),
+                "ticker_snippets": _ticker_snippets(e, tickers),
                 "folder": e.get("folder") or "",
                 "tickers": tickers,
             })

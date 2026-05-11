@@ -24,21 +24,47 @@
     inflight: 0,
   };
 
-  function init() {
-    let tries = 0;
-    const tick = () => {
-      tries++;
-      const mode = window.V2?.state?.mode;
-      if (mode === 'live' || mode === 'cached') {
-        document.getElementById('v2-news-tab').style.display = '';
-        wire();
-        load();
-      } else if (mode === 'probing' && tries < 30) {
-        setTimeout(tick, 200);
-      }
+  // Reveal the tab as soon as we know the backend is reachable. Prefer the
+  // V2 mode pill if dashboard-extensions has already probed, otherwise do our
+  // own /api/health probe so the tab never depends on another module booting
+  // successfully.
+  async function init() {
+    console.info('[news-tab] init');
+    let revealed = false;
+    const reveal = () => {
+      if (revealed) return;
+      revealed = true;
+      const tabBtn = document.getElementById('v2-news-tab');
+      if (tabBtn) tabBtn.style.display = '';
+      wire();
+      load();
     };
-    tick();
+
+    // Fast path: V2 already probed.
+    const mode = window.V2?.state?.mode;
+    if (mode === 'live' || mode === 'cached') { reveal(); return; }
+
+    // Poll V2 for up to 6s (covers the dashboard-extensions startup race).
+    for (let i = 0; i < 30 && !revealed; i++) {
+      await sleep(200);
+      const m = window.V2?.state?.mode;
+      if (m === 'live' || m === 'cached') { reveal(); return; }
+      if (m === 'offline') break;   // V2 says backend is down — no point waiting
+    }
+
+    // Fallback: probe /api/health ourselves. If it answers, reveal anyway.
+    try {
+      const r = await fetch('/api/health', { cache: 'no-store' });
+      if (r.ok) {
+        console.info('[news-tab] revealing via fallback probe');
+        reveal();
+        return;
+      }
+    } catch (e) {
+      console.info('[news-tab] backend unreachable, tab stays hidden', e);
+    }
   }
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
@@ -145,10 +171,10 @@
 
     const emailsHost = document.getElementById('v2-inbox-emails');
     if (!d.emails_cache_present) {
-      emailsHost.innerHTML = '<div class="v2-drawer-disabled">Email cache empty. Click <b>↻ Refresh</b> above to scan Outlook (10–30s).</div>';
+      emailsHost.innerHTML = '<div class="v2-drawer-disabled">Email cache empty. Click <b>↻ Refresh</b> above to scan Outlook (this now fetches full bodies — 30–90s first time).</div>';
     } else {
       emailsHost.innerHTML = emails.length
-        ? emails.map(renderEmail).join('')
+        ? emails.map(e => renderEmail(e, STATE.activeTicker)).join('')
         : '<div class="v2-drawer-empty">No emails match this filter.</div>';
     }
 
@@ -195,23 +221,39 @@
     </div>`;
   }
 
-  function renderEmail(e) {
+  function renderEmail(e, activeTicker) {
     const date = (e.ts || '').replace('T', ' ').slice(0, 16);
     const tags = (e.tickers || [])
       .map(x => `<span class="v2-news-tag" data-set-ticker="${escAttr(x)}">${escHtml(x)}</span>`)
       .join('');
+    // When a ticker chip is active, prefer the body snippet around that
+    // ticker's mention so the user sees the actual relevant text.
+    const snippet = (activeTicker && e.ticker_snippets && e.ticker_snippets[activeTicker])
+      ? e.ticker_snippets[activeTicker]
+      : (e.preview || '');
+    const snippetCls = (activeTicker && e.ticker_snippets && e.ticker_snippets[activeTicker])
+      ? 'snip snip-hit' : 'snip';
+    const highlighted = activeTicker
+      ? highlightTerm(escHtml(snippet), activeTicker)
+      : escHtml(snippet);
     return `<div class="v2-email-card v2-news-card" ${e.tickers?.length ? `data-news-tickers="${escAttr(e.tickers.join(','))}"` : ''}>
       <div>
         <span class="from">${escHtml(e.sender || e.sender_email || '?')}</span>
         <span class="date">${escHtml(date)}</span>
       </div>
       <div class="subj">${escHtml(e.subject || '(no subject)')}</div>
-      <div class="snip">${escHtml(e.preview || '')}</div>
+      <div class="${snippetCls}">${highlighted}</div>
       <div class="v2-news-tags">
         ${tags}
         <span class="engage">${e.folder ? escHtml(e.folder) + ' · ' : ''}▸ ${e.score}</span>
       </div>
     </div>`;
+  }
+
+  function highlightTerm(escapedText, term) {
+    if (!term) return escapedText;
+    const safe = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return escapedText.replace(new RegExp(safe, 'gi'), m => `<mark>${m}</mark>`);
   }
 
   // ── Utils ─────────────────────────────────────────────────────────────

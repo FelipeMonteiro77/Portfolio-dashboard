@@ -29,7 +29,7 @@ OUTLOOK_SCRIPT = Path(r"C:/Users/felipe.monteiro/scripts/outlook.py")
 CACHE_PATH = Path(__file__).resolve().parent.parent.parent / "backend" / "data" / "emails_cache.json"
 CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-CACHE_TTL_SECONDS = 15 * 60  # refresh in-memory cache every 15 min
+CACHE_TTL_SECONDS = 60 * 60  # 1h — full-body scans are slow (~30s+ for 7 days)
 DEFAULT_DAYS = 7
 
 _refresh_lock = asyncio.Lock()
@@ -51,17 +51,42 @@ def _load_cache() -> dict:
         return {"metadata": {"fetched_at": None}, "emails": []}
 
 
+def _truncate_bodies(path: Path, max_chars: int) -> None:
+    """Trim each email's body to the first `max_chars` characters in-place.
+
+    The Outlook fetch can produce 20KB+ bodies for HTML-heavy research notes.
+    Substring matching only needs the first few KB. This keeps the cache file
+    under ~5MB even for 7-day fetches with hundreds of emails.
+    """
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        changed = False
+        for e in data.get("emails", []):
+            body = e.get("body") or ""
+            if len(body) > max_chars:
+                e["body"] = body[:max_chars]
+                changed = True
+        if changed:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False)
+    except Exception:
+        pass  # leave the cache untouched on any failure
+
+
 async def _refresh_cache(days: int = DEFAULT_DAYS) -> dict:
     """Spawn outlook.py to repopulate the cache. Held by lock so only one refresh at a time."""
     async with _refresh_lock:
         # Re-check inside lock: another caller might have just refreshed.
         if _cache_age() < CACHE_TTL_SECONDS:
             return _load_cache()
+        # Pull full bodies — when someone clicks a ticker we want substring
+        # matches against the body too (e.g. spec-sales remarks where the
+        # ticker is buried in paragraph 4, not the subject line).
         cmd = [
             sys.executable,
             str(OUTLOOK_SCRIPT),
             "--days", str(days),
-            "--no-body",                     # body fetch is expensive; we only need metadata for filtering
             "-o", str(CACHE_PATH),
         ]
         proc = await asyncio.create_subprocess_exec(
@@ -72,6 +97,10 @@ async def _refresh_cache(days: int = DEFAULT_DAYS) -> dict:
             raise RuntimeError(
                 f"outlook.py failed (code {proc.returncode}): {stderr.decode('utf-8', 'replace')[:500]}"
             )
+        # Truncate bodies to keep the cache compact (4 KB is plenty for ticker
+        # matching; research notes rarely have important content past the first
+        # screen).
+        _truncate_bodies(CACHE_PATH, max_chars=4000)
         return _load_cache()
 
 

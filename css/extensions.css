@@ -164,6 +164,12 @@ body.v2-extensions-active .snap-table tbody tr[data-v2-ticker]:hover {
 .v2-email-card .snip { color: var(--text2); font-size: .76rem; margin-top: 4px;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
   overflow: hidden; }
+.v2-email-card .snip-hit { color: var(--text); line-height: 1.45;
+  border-left: 2px solid var(--orange); padding-left: 8px; }
+.v2-email-card mark, .v2-tweet-card mark {
+  background: rgba(227,179,65,.30); color: var(--orange);
+  padding: 0 2px; border-radius: 2px; font-weight: 600;
+}
 
 /* Tweet card */
 .v2-tweet-card {
