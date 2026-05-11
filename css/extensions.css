@@ -245,7 +245,78 @@ body.v2-extensions-active .snap-table tbody tr[data-v2-ticker]:hover {
 .v2-modal-actions .save:disabled { opacity: .5; cursor: not-allowed; }
 .v2-modal-err { color: var(--red); font-size: .76rem; margin-top: 8px; min-height: 18px; }
 
-/* ── News & Social — repo browser ─────────────────────────────────────── */
+/* ── News & Social — ranked inbox ─────────────────────────────────────── */
+.v2-inbox-toolbar {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 10px; flex-wrap: wrap;
+}
+.v2-inbox-lookback { display: flex; gap: 4px; }
+.v2-inbox-meta {
+  color: var(--text2); font-size: .76rem; flex: 1; min-width: 0;
+}
+.v2-inbox-ribbon {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 14px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px;
+}
+.v2-inbox-ribbon-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.v2-inbox-ribbon-label {
+  color: var(--text3); font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em; min-width: 90px;
+}
+.v2-inbox-tickers, .v2-inbox-themes {
+  display: flex; flex-wrap: wrap; gap: 6px; flex: 1;
+}
+.v2-inbox-dim { color: var(--text3); font-size: .76rem; font-style: italic; }
+.v2-inbox-ticker-chip {
+  background: rgba(227,179,65,.10); color: var(--orange);
+  border: 1px solid rgba(227,179,65,.35); border-radius: 14px;
+  padding: 3px 10px; font-size: .76rem; font-weight: 700; cursor: pointer;
+  font-family: 'JetBrains Mono', monospace; letter-spacing: .04em;
+  transition: all .15s;
+}
+.v2-inbox-ticker-chip:hover { background: rgba(227,179,65,.22); }
+.v2-inbox-ticker-chip.active { background: var(--orange); color: #000; }
+.v2-inbox-ticker-chip .n {
+  margin-left: 6px; color: var(--text3); font-weight: 400;
+}
+.v2-inbox-ticker-chip.active .n { color: rgba(0,0,0,.55); }
+.v2-inbox-theme-chip {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text2); border-radius: 14px; padding: 3px 10px;
+  font-size: .72rem; font-weight: 500;
+}
+.v2-inbox-theme-chip .n {
+  margin-left: 4px; color: var(--text3); font-size: .68rem;
+}
+
+.v2-inbox-cols {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start;
+}
+@media (max-width: 1000px) { .v2-inbox-cols { grid-template-columns: 1fr; } }
+.v2-inbox-col {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  display: flex; flex-direction: column; min-width: 0;
+}
+.v2-inbox-col-head {
+  padding: 10px 14px; background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  font-size: .82rem; font-weight: 700; color: var(--text);
+  letter-spacing: .03em; display: flex; justify-content: space-between; align-items: baseline;
+  border-top-left-radius: 10px; border-top-right-radius: 10px;
+}
+.v2-inbox-col-count {
+  color: var(--text3); font-weight: 400; font-size: .75rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+.v2-inbox-col-body {
+  padding: 10px 12px; max-height: calc(100vh - 320px); min-height: 320px;
+  overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+}
+.v2-inbox-tier1 {
+  display: inline-block; color: var(--orange); margin-right: 4px;
+  font-size: .9rem; line-height: 1;
+}
+
+/* Legacy repo-browser styles (kept for back-compat — sidebar may be removed later) */
 .v2-repo-header {
   display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;
 }

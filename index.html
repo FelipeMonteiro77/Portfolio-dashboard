@@ -248,57 +248,52 @@ select[multiple] option:checked { background: rgba(88,166,255,.2); color: var(--
   <div class="tab" id="v2-news-tab" onclick="showTab('news')" style="display:none">🗞️ News &amp; Social</div>
 </div>
 
-<!-- ═══════════════════ NEWS & SOCIAL — repo browser ═══════════════════
-     A browse view over our local Twitter corpus (SQLite, ~10k tweets) and
-     cached Outlook emails. Two sub-modes (Tweets / Emails), each with its
-     own filters + pagination. No external API calls.
+<!-- ═══════════════════ NEWS & SOCIAL — ranked inbox ═══════════════════
+     Ranked Gmail-style two-column inbox over the local Twitter corpus
+     (~10k tweets, SQLite) and cached Outlook emails. Top tickers/themes
+     ribbon at the top filters both columns. No external API calls.
 ================================================================== -->
 <div class="panel" id="tab-news">
-  <div class="v2-repo-header">
-    <div class="v2-repo-modes">
-      <button class="v2-repo-mode active" data-mode="tweets">Tweets <span id="v2-repo-tw-total"></span></button>
-      <button class="v2-repo-mode" data-mode="emails">Emails <span id="v2-repo-em-total"></span></button>
+  <div class="v2-inbox-toolbar">
+    <div class="v2-inbox-lookback" id="v2-inbox-lookback">
+      <button class="v2-repo-side-pill" data-h="24">24h</button>
+      <button class="v2-repo-side-pill active" data-h="48">48h</button>
+      <button class="v2-repo-side-pill" data-h="168">7d</button>
+      <button class="v2-repo-side-pill" data-h="720">30d</button>
     </div>
-    <div class="v2-repo-search">
-      <input type="search" id="v2-repo-q" placeholder="Search text… (e.g. earnings, jensen, 100M, &quot;guide higher&quot;)">
-    </div>
-    <button class="v2-news-refresh" id="v2-repo-refresh-emails" title="Refresh email cache from Outlook (10–30s)">↻ Refresh emails</button>
+    <div class="v2-inbox-meta" id="v2-inbox-meta">Loading…</div>
+    <button class="v2-news-refresh" id="v2-inbox-refresh" title="Reload + refresh email cache">↻ Refresh</button>
   </div>
 
-  <div class="v2-repo-body">
-    <aside class="v2-repo-sidebar" id="v2-repo-sidebar">
-      <div class="v2-repo-side-section">
-        <div class="v2-repo-side-title">Lookback</div>
-        <div class="v2-repo-side-pills" id="v2-repo-lookback">
-          <button class="v2-repo-side-pill" data-h="24">24h</button>
-          <button class="v2-repo-side-pill active" data-h="48">48h</button>
-          <button class="v2-repo-side-pill" data-h="168">7d</button>
-          <button class="v2-repo-side-pill" data-h="720">30d</button>
-          <button class="v2-repo-side-pill" data-h="8760">1y</button>
-        </div>
-      </div>
-      <div class="v2-repo-side-section" data-only="tweets">
-        <div class="v2-repo-side-title">Category</div>
-        <div class="v2-repo-side-list" id="v2-repo-cats"></div>
-      </div>
-      <div class="v2-repo-side-section" data-only="tweets">
-        <div class="v2-repo-side-title">Handle</div>
-        <div class="v2-repo-side-list scroll" id="v2-repo-handles"></div>
-      </div>
-      <div class="v2-repo-side-section" data-only="emails" style="display:none">
-        <div class="v2-repo-side-title">Sender</div>
-        <div class="v2-repo-side-list scroll" id="v2-repo-senders"></div>
-      </div>
-      <div class="v2-repo-side-section" data-only="emails" style="display:none">
-        <div class="v2-repo-side-title">Folder</div>
-        <div class="v2-repo-side-list" id="v2-repo-folders"></div>
-      </div>
-    </aside>
+  <div class="v2-inbox-ribbon">
+    <div class="v2-inbox-ribbon-row">
+      <div class="v2-inbox-ribbon-label">Top tickers:</div>
+      <div class="v2-inbox-tickers" id="v2-inbox-top-tickers"></div>
+    </div>
+    <div class="v2-inbox-ribbon-row">
+      <div class="v2-inbox-ribbon-label">Top themes:</div>
+      <div class="v2-inbox-themes" id="v2-inbox-top-themes"></div>
+    </div>
+  </div>
 
-    <div class="v2-repo-main">
-      <div class="v2-repo-status" id="v2-repo-status">Loading…</div>
-      <div class="v2-repo-list" id="v2-repo-list"></div>
-      <div class="v2-repo-pager" id="v2-repo-pager"></div>
+  <div class="v2-inbox-cols">
+    <div class="v2-inbox-col">
+      <div class="v2-inbox-col-head">
+        <span>Tweets</span>
+        <span class="v2-inbox-col-count" id="v2-inbox-tw-count"></span>
+      </div>
+      <div class="v2-inbox-col-body" id="v2-inbox-tweets">
+        <div class="v2-drawer-loading">Loading tweets…</div>
+      </div>
+    </div>
+    <div class="v2-inbox-col">
+      <div class="v2-inbox-col-head">
+        <span>Emails</span>
+        <span class="v2-inbox-col-count" id="v2-inbox-em-count"></span>
+      </div>
+      <div class="v2-inbox-col-body" id="v2-inbox-emails">
+        <div class="v2-drawer-loading">Loading emails…</div>
+      </div>
     </div>
   </div>
 </div>
