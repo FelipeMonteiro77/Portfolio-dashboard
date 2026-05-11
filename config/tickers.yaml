@@ -1,0 +1,375 @@
+# Portfolio Dashboard v2 — universe config
+#
+# Single source of truth for the dashboard.
+# Adding a name = appending a block here and clicking "Reload" in the UI
+# (or POST /api/tickers from the "+ Add Ticker" modal).
+#
+# Schema per entry:
+#   ticker          : symbol shown in the UI (also the dict key)
+#   bbg_ticker      : Bloomberg ticker (defaults to "<ticker> US Equity" if omitted)
+#   name            : display name
+#   sector          : free-text sector label (drives Screen tab filter)
+#   in_screen       : show on the Screen watchlist tab (default true)
+#   in_valuation    : show on the Valuation EPS tracker (default false)
+#   weight          : optional portfolio weight (0–1)
+#   capstone_eps    : Capstone in-house estimates ({"26": x, "27": y})
+#   px_seed         : fallback price (used when both BBG and Yahoo are unreachable)
+#   range_52w       : { low, high } 52-week range fallback
+#   mkt_cap_b       : market cap (USD bn) fallback
+#   tweet_cashtag_only : if true, only $TICKER matches in tweets (avoids common-word collisions)
+#   search_aliases  :
+#     email         : list of strings to OR-search Outlook (subject/body)
+#     tweet         : list of strings to OR-search the local tweet corpus
+
+universe:
+
+  # ─── Mega-cap tech / AI (also in Valuation) ──────────────────────────────
+  - {ticker: NVDA, name: NVIDIA,             sector: GPU / AI Infra,        in_valuation: true,
+     capstone_eps: {"26": 9.50,  "27": 13.18}, px_seed: 185.21, range_52w: {low: 86.62,  high: 212.19}, mkt_cap_b: 4440,
+     search_aliases: {email: [Nvidia, NVidia, NVIDIA], tweet: [$NVDA, NVDA, Nvidia]}}
+
+  - {ticker: AVGO, name: Broadcom,           sector: Semis / AI ASIC,       in_valuation: true,
+     capstone_eps: {"26": 12.14, "27": 19.73}, px_seed: 327.92, range_52w: {low: 138.10, high: 414.61}, mkt_cap_b: 1530,
+     search_aliases: {email: [Broadcom], tweet: [$AVGO, AVGO, Broadcom]}}
+
+  - {ticker: TSM,  name: TSMC (ADR),         sector: Foundry,               in_valuation: true,
+     capstone_eps: {"26": 15.80, "27": 20.50}, px_seed: 340.16, range_52w: {low: 134.25, high: 390.21}, mkt_cap_b: 1750,
+     search_aliases: {email: [TSMC, "Taiwan Semi"], tweet: [$TSM, TSM, TSMC, "Taiwan Semi"]}}
+
+  - {ticker: AMD,  name: Adv. Micro Devices, sector: GPU / CPU,             in_valuation: true,
+     capstone_eps: {"26": 10.00, "27": 12.00}, px_seed: 197.74, range_52w: {low: 76.48,  high: 267.08}, mkt_cap_b: 313,
+     search_aliases: {email: [AMD, "Advanced Micro"], tweet: [$AMD, AMD]}}
+
+  - {ticker: AAPL, name: Apple,              sector: Consumer Tech,         in_valuation: true,
+     capstone_eps: {"26": 9.00,  "27": 9.90 }, px_seed: 253.39, range_52w: {low: 169.21, high: 288.62}, mkt_cap_b: 3900,
+     search_aliases: {email: [Apple], tweet: [$AAPL, AAPL, "Apple Inc"]}}
+
+  - {ticker: GOOG, name: Alphabet (C),       sector: Search / Cloud / AI,   in_valuation: true,
+     capstone_eps: {"26": 11.60, "27": 13.60}, px_seed: 304.26, range_52w: {low: 142.66, high: 350.15}, mkt_cap_b: 1860,
+     search_aliases: {email: [Alphabet, Google, GOOGL, YouTube], tweet: [$GOOG, $GOOGL, Alphabet, Google, YouTube]}}
+
+  - {ticker: META, name: Meta Platforms,     sector: Social / AI Infra,     in_valuation: true,
+     capstone_eps: {"26": 32.75, "27": 39.00}, px_seed: 628.59, range_52w: {low: 479.80, high: 796.25}, mkt_cap_b: 1540,
+     search_aliases: {email: ["Meta Platforms", Facebook, Instagram], tweet: [$META, META, "Meta Platforms", Facebook, Instagram]}}
+
+  - {ticker: AMZN, name: Amazon,             sector: E-Com / Cloud (AWS),   in_valuation: true,
+     capstone_eps: {"26": 9.00,  "27": 10.00}, px_seed: 208.75, range_52w: {low: 161.38, high: 258.60}, mkt_cap_b: 2200,
+     search_aliases: {email: [Amazon, AWS], tweet: [$AMZN, AMZN, Amazon, AWS]}}
+
+  - {ticker: MSFT, name: Microsoft,          sector: Cloud / Enterprise AI, in_valuation: true,
+     capstone_eps: {"26": 18.00, "27": 21.00}, px_seed: 397.33, range_52w: {low: 344.79, high: 555.45}, mkt_cap_b: 3010,
+     search_aliases: {email: [Microsoft], tweet: [$MSFT, MSFT, Microsoft]}}
+
+  # ─── Photonics / Optical ─────────────────────────────────────────────────
+  - {ticker: LITE, name: Lumentum,           sector: Photonics / Optical,   in_valuation: true,
+     capstone_eps: {"26": 12.80, "27": 31.50}, px_seed: 700.18, range_52w: {low: 45.65,  high: 783.80}, mkt_cap_b: 47.5,
+     search_aliases: {email: [Lumentum], tweet: [$LITE, LITE, Lumentum]}}
+
+  - {ticker: COHR, name: Coherent,           sector: Photonics / Laser,     in_valuation: true,
+     capstone_eps: {"26": 9.26,  "27": 15.30}, px_seed: 247.40, range_52w: {low: 45.58,  high: 300.20}, mkt_cap_b: 39,
+     search_aliases: {email: [Coherent], tweet: [$COHR, COHR, Coherent]}}
+
+  - {ticker: FN,   name: Fabrinet,           sector: Optical Packaging,
+     px_seed: 520.31, range_52w: {low: 148.55, high: 632.99},
+     tweet_cashtag_only: true,
+     search_aliases: {email: [Fabrinet], tweet: ["$FN", Fabrinet]}}
+
+  - {ticker: AAOI, name: Applied Optoelectronics, sector: Optical Components,
+     px_seed: 96.98, range_52w: {low: 9.71, high: 128.96},
+     search_aliases: {email: ["Applied Optoelectronics"], tweet: [$AAOI, AAOI, "Applied Optoelectronics"]}}
+
+  # ─── Streaming / Media ───────────────────────────────────────────────────
+  - {ticker: NFLX, name: Netflix,            sector: Streaming,             in_valuation: true,
+     capstone_eps: {"26": 3.23, "27": 3.86}, px_seed: 95.20,
+     search_aliases: {email: [Netflix], tweet: [$NFLX, NFLX, Netflix]}}
+
+  - {ticker: SPOT, name: Spotify,            sector: Streaming / Audio,     in_valuation: true,
+     capstone_eps: {"26": 12.70, "27": 16.15}, px_seed: 565.19,
+     search_aliases: {email: [Spotify], tweet: [$SPOT, Spotify]}}
+
+  - {ticker: WBD,  name: Warner Bros. Discovery, sector: Media / Streaming,
+     px_seed: 27.47, range_52w: {low: 7.52, high: 30.00},
+     search_aliases: {email: ["Warner Bros", "Warner Brothers"], tweet: [$WBD, WBD, "Warner Bros"]}}
+
+  - {ticker: PSKY, name: Paramount Skydance, sector: Media / Streaming,
+     px_seed: 9.64, range_52w: {low: 9.50, high: 20.86},
+     search_aliases: {email: ["Paramount Skydance", "Paramount Sky"], tweet: [$PSKY, "Paramount Skydance"]}}
+
+  - {ticker: RDDT, name: Reddit,             sector: Social Media,
+     px_seed: 138.04, range_52w: {low: 79.75, high: 282.95},
+     search_aliases: {email: [Reddit], tweet: [$RDDT, Reddit]}}
+
+  # ─── Travel / Mobility ───────────────────────────────────────────────────
+  - {ticker: UBER, name: Uber Technologies,  sector: Ride-Share / Delivery, in_valuation: true,
+     capstone_eps: {"26": 3.12, "27": 4.27}, px_seed: 73.33,
+     search_aliases: {email: [Uber], tweet: [$UBER, UBER, Uber]}}
+
+  - {ticker: LYFT, name: Lyft,               sector: Ride-Share,
+     px_seed: 13.51, range_52w: {low: 9.66, high: 25.54},
+     search_aliases: {email: [Lyft], tweet: [$LYFT, LYFT, Lyft]}}
+
+  - {ticker: BKNG, name: Booking Holdings,   sector: Online Travel,         in_valuation: true,
+     capstone_eps: {"26": 268.0, "27": 313.0}, px_seed: 4293.02,
+     search_aliases: {email: [Booking, Booking.com], tweet: [$BKNG, Booking]}}
+
+  - {ticker: ABNB, name: Airbnb,             sector: Online Travel,
+     px_seed: 128.14, range_52w: {low: 99.88, high: 143.88},
+     search_aliases: {email: [Airbnb], tweet: [$ABNB, Airbnb]}}
+
+  - {ticker: EXPE, name: Expedia Group,      sector: Online Travel,
+     px_seed: 230.15, range_52w: {low: 130.01, high: 303.80},
+     search_aliases: {email: [Expedia], tweet: [$EXPE, Expedia]}}
+
+  # ─── Enterprise SaaS / Cloud ─────────────────────────────────────────────
+  - {ticker: ORCL, name: Oracle,             sector: Cloud / Enterprise,    in_valuation: true,
+     capstone_eps: {"26": 7.42, "27": 9.34}, px_seed: 155.94,
+     search_aliases: {email: [Oracle], tweet: [$ORCL, Oracle]}}
+
+  - {ticker: NOW,  name: ServiceNow,         sector: Cloud / Enterprise,    in_valuation: true,
+     capstone_eps: {"26": 4.20, "27": 5.06}, px_seed: 114.89,
+     tweet_cashtag_only: true,
+     search_aliases: {email: [ServiceNow], tweet: ["$NOW", ServiceNow]}}
+
+  - {ticker: CRWD, name: CrowdStrike,        sector: Cybersecurity,
+     search_aliases: {email: [CrowdStrike], tweet: [$CRWD, CrowdStrike]}}
+
+  - {ticker: PANW, name: Palo Alto Networks, sector: Cybersecurity,
+     search_aliases: {email: ["Palo Alto"], tweet: [$PANW, "Palo Alto Networks"]}}
+
+  - {ticker: FROG, name: JFrog,              sector: DevOps / Software,
+     px_seed: 43.17, range_52w: {low: 27.00, high: 70.43},
+     search_aliases: {email: [JFrog], tweet: [$FROG, JFrog]}}
+
+  - {ticker: FICO, name: Fair Isaac,         sector: Analytics / Scores,
+     px_seed: 1163.27, range_52w: {low: 1068.67, high: 2217.60},
+     tweet_cashtag_only: true,
+     search_aliases: {email: ["Fair Isaac", "FICO "], tweet: ["$FICO", "Fair Isaac"]}}
+
+  # ─── Networking / Connectivity ───────────────────────────────────────────
+  - {ticker: CSCO, name: Cisco Systems,      sector: Networking,            in_valuation: true,
+     capstone_eps: {"26": 4.29, "27": 4.73}, px_seed: 78.33,
+     search_aliases: {email: [Cisco], tweet: [$CSCO, Cisco]}}
+
+  - {ticker: ANET, name: Arista Networks,    sector: Cloud Networking,      in_valuation: true,
+     capstone_eps: {"26": 3.50, "27": 4.22}, px_seed: 136.00,
+     search_aliases: {email: [Arista], tweet: [$ANET, Arista]}}
+
+  - {ticker: MRVL, name: Marvell Technology, sector: Semis / Networking,
+     px_seed: 92.28, range_52w: {low: 47.09, high: 102.77},
+     search_aliases: {email: [Marvell], tweet: [$MRVL, Marvell]}}
+
+  - {ticker: CRDO, name: Credo Technology,   sector: Connectivity Semis,
+     px_seed: 115.79, range_52w: {low: 29.09, high: 213.80},
+     search_aliases: {email: [Credo], tweet: [$CRDO, Credo]}}
+
+  # ─── Semis (broad) ───────────────────────────────────────────────────────
+  - {ticker: TXN,  name: Texas Instruments,  sector: Analog Semis,
+     px_seed: 195.28, range_52w: {low: 139.95, high: 231.32},
+     search_aliases: {email: ["Texas Instruments"], tweet: [$TXN, "Texas Instruments"]}}
+
+  - {ticker: ADI,  name: Analog Devices,     sector: Analog / Mixed-Signal,
+     px_seed: 312.64, range_52w: {low: 158.65, high: 363.20},
+     tweet_cashtag_only: true,
+     search_aliases: {email: ["Analog Devices"], tweet: ["$ADI", "Analog Devices"]}}
+
+  - {ticker: AMAT, name: Applied Materials,  sector: Semicap Equipment,
+     px_seed: 346.08, range_52w: {low: 123.74, high: 395.95},
+     search_aliases: {email: ["Applied Materials"], tweet: [$AMAT, "Applied Materials"]}}
+
+  - {ticker: KLAC, name: KLA Corporation,    sector: Semicap Equipment,
+     px_seed: 1440.50, range_52w: {low: 551.33, high: 1693.35},
+     search_aliases: {email: ["KLA Corp", "KLA "], tweet: [$KLAC, "KLA Corp"]}}
+
+  - {ticker: NXPI, name: NXP Semiconductors, sector: Auto / Industrial Semis,
+     px_seed: 193.00, range_52w: {low: 148.09, high: 256.36},
+     search_aliases: {email: ["NXP "], tweet: [$NXPI, "NXP Semi"]}}
+
+  - {ticker: "ON", name: ON Semiconductor,   sector: Power / Sensing Semis,
+     px_seed: 60.40, range_52w: {low: 31.04, high: 73.76},
+     tweet_cashtag_only: true,
+     search_aliases: {email: [onsemi, "ON Semi", "ON Semiconductor"], tweet: ["$ON", onsemi, "ON Semi"]}}
+
+  - {ticker: SNPS, name: Synopsys,           sector: EDA / Chip Design,
+     px_seed: 426.56, range_52w: {low: 365.74, high: 651.73},
+     search_aliases: {email: [Synopsys], tweet: [$SNPS, Synopsys]}}
+
+  - {ticker: CDNS, name: Cadence Design,     sector: EDA / Chip Design,
+     px_seed: 293.28, range_52w: {low: 221.56, high: 376.45},
+     search_aliases: {email: [Cadence], tweet: [$CDNS, "Cadence Design"]}}
+
+  - {ticker: APH,  name: Amphenol,           sector: Connectors / Sensors,
+     px_seed: 136.57, range_52w: {low: 56.45, high: 167.04},
+     tweet_cashtag_only: true,
+     search_aliases: {email: [Amphenol], tweet: ["$APH", Amphenol]}}
+
+  - {ticker: TSEM, name: Tower Semiconductor, sector: Specialty Foundry,
+     px_seed: 139.05, range_52w: {low: 28.64, high: 149.57},
+     search_aliases: {email: ["Tower Semi", TowerSemi], tweet: [$TSEM, "Tower Semi"]}}
+
+  - {ticker: SNDK, name: Sandisk (WDC),      sector: Memory / Storage,
+     px_seed: 714.02, range_52w: {low: 27.89, high: 725.00},
+     search_aliases: {email: [Sandisk, SanDisk], tweet: [$SNDK, Sandisk]}}
+
+  - {ticker: DELL, name: Dell Technologies,  sector: Enterprise Hardware,
+     px_seed: 157.17, range_52w: {low: 66.25, high: 168.08},
+     tweet_cashtag_only: true,
+     search_aliases: {email: ["Dell "], tweet: ["$DELL", "Dell Technologies"]}}
+
+  - {ticker: VRT,  name: Vertiv Holdings,    sector: Data Center Infra,
+     px_seed: 266.89, range_52w: {low: 53.60, high: 276.78},
+     search_aliases: {email: [Vertiv], tweet: [$VRT, Vertiv]}}
+
+  # ─── Small/mid semis ─────────────────────────────────────────────────────
+  - {ticker: TER,  name: Teradyne,           sector: Semicap Equipment,
+     tweet_cashtag_only: true,
+     search_aliases: {email: [Teradyne], tweet: ["$TER", Teradyne]}}
+
+  - {ticker: SANM, name: Sanmina,            sector: EMS / Manufacturing,
+     search_aliases: {email: [Sanmina], tweet: [$SANM, Sanmina]}}
+
+  - {ticker: AXTI, name: AXT Inc,            sector: Compound Semis,
+     search_aliases: {email: ["AXT "], tweet: [$AXTI, "AXT Inc"]}}
+
+  - {ticker: NVTS, name: Navitas,            sector: GaN / Power Semis,
+     search_aliases: {email: [Navitas], tweet: [$NVTS, Navitas]}}
+
+  - {ticker: AOSL, name: Alpha & Omega Semi, sector: Power Semis,
+     search_aliases: {email: ["Alpha & Omega", "Alpha and Omega"], tweet: [$AOSL, "Alpha & Omega"]}}
+
+  - {ticker: POWI, name: Power Integrations, sector: Power Semis,
+     search_aliases: {email: ["Power Integrations"], tweet: [$POWI, "Power Integrations"]}}
+
+  - {ticker: POET, name: POET Technologies,  sector: Photonics / Co-packaged,
+     search_aliases: {email: ["POET Technologies", "POET "], tweet: [$POET, "POET Technologies"]}}
+
+  - {ticker: DRAM, name: Memory (DRAM),      sector: Memory,
+     search_aliases: {email: [DRAM], tweet: [$DRAM, DRAM]}}
+
+  # ─── Energy / Power / Grid ───────────────────────────────────────────────
+  - {ticker: GEV,  name: GE Vernova,         sector: Energy / Power,        in_valuation: true,
+     capstone_eps: {"26": 14.46, "27": 23.21}, px_seed: 827.88,
+     search_aliases: {email: ["GE Vernova", Vernova], tweet: [$GEV, "GE Vernova"]}}
+
+  - {ticker: ENR GY, bbg_ticker: ENR GY Equity, name: Siemens Energy, sector: Energy / Grid, in_valuation: true,
+     capstone_eps: {"26": 4.32, "27": 5.91}, px_seed: 150.00,
+     search_aliases: {email: ["Siemens Energy"], tweet: ["Siemens Energy"]}}
+
+  - {ticker: AGX,  name: Argan Inc,          sector: Power / Construction,  in_valuation: true,
+     capstone_eps: {"26": 11.50, "27": 15.20}, px_seed: 466.89,
+     search_aliases: {email: [Argan], tweet: [$AGX, Argan]}}
+
+  - {ticker: ETN,  name: Eaton Corporation,  sector: Power Management,
+     px_seed: 361.79, range_52w: {low: 231.85, high: 408.45},
+     search_aliases: {email: [Eaton], tweet: [$ETN, Eaton]}}
+
+  - {ticker: PWR,  name: Quanta Services,    sector: Power / Construction,
+     tweet_cashtag_only: true,
+     search_aliases: {email: ["Quanta Services"], tweet: ["$PWR", "Quanta Services"]}}
+
+  # ─── Industrials / Other ─────────────────────────────────────────────────
+  - {ticker: CAT,  name: Caterpillar,        sector: Heavy Equipment,
+     px_seed: 701.34, range_52w: {low: 267.30, high: 789.81},
+     tweet_cashtag_only: true,
+     search_aliases: {email: [Caterpillar], tweet: ["$CAT", Caterpillar]}}
+
+  - {ticker: UNH,  name: UnitedHealth Group, sector: Healthcare / Insurance,
+     px_seed: 287.13, range_52w: {low: 234.60, high: 606.36},
+     search_aliases: {email: [UnitedHealth], tweet: [$UNH, UnitedHealth]}}
+
+  - {ticker: B,    name: Barnes Group,       sector: Industrial / Aero,
+     tweet_cashtag_only: true,
+     search_aliases: {email: ["Barnes Group"], tweet: ["$B", "Barnes Group"]}}
+
+  - {ticker: BE,   name: Bloom Energy,       sector: Fuel Cells / Power,
+     tweet_cashtag_only: true,
+     search_aliases: {email: ["Bloom Energy"], tweet: ["$BE", "Bloom Energy"]}}
+
+  - {ticker: BX,   name: Blackstone,         sector: Asset Management,
+     px_seed: 106.63, range_52w: {low: 101.73, high: 190.09},
+     tweet_cashtag_only: true,
+     search_aliases: {email: [Blackstone], tweet: ["$BX", Blackstone]}}
+
+  # ─── Gold ────────────────────────────────────────────────────────────────
+  - {ticker: NEM,  name: Newmont,            sector: Gold Mining,
+     px_seed: 109.74, range_52w: {low: 42.93, high: 134.88},
+     tweet_cashtag_only: true,
+     search_aliases: {email: [Newmont], tweet: ["$NEM", Newmont]}}
+
+  - {ticker: AEM,  name: Agnico Eagle Mines, sector: Gold Mining,
+     px_seed: 209.54, range_52w: {low: 94.77, high: 255.24},
+     search_aliases: {email: ["Agnico Eagle"], tweet: [$AEM, "Agnico Eagle"]}}
+
+  - {ticker: KGC,  name: Kinross Gold,       sector: Gold Mining,
+     px_seed: 30.83, range_52w: {low: 11.12, high: 39.11},
+     search_aliases: {email: ["Kinross Gold"], tweet: [$KGC, "Kinross Gold"]}}
+
+  - {ticker: AU,   name: AngloGold Ashanti,  sector: Gold Mining,
+     px_seed: 96.40, range_52w: {low: 31.91, high: 129.14},
+     tweet_cashtag_only: true,
+     search_aliases: {email: [AngloGold], tweet: ["$AU", AngloGold]}}
+
+  # ─── ETFs ────────────────────────────────────────────────────────────────
+  - {ticker: SPY,  name: SPDR S&P 500,        sector: ETF / S&P 500,
+     px_seed: 669.89, range_52w: {low: 481.80, high: 697.84},
+     tweet_cashtag_only: true,
+     search_aliases: {email: [SPY, "S&P 500", "S&P500"], tweet: ["$SPY", "S&P 500"]}}
+
+  - {ticker: QQQ,  name: Invesco QQQ Trust,   sector: ETF / Nasdaq-100,
+     px_seed: 601.46, range_52w: {low: 402.39, high: 637.01},
+     search_aliases: {email: [QQQ, "Nasdaq 100", Nasdaq-100], tweet: [$QQQ, "Nasdaq 100"]}}
+
+  - {ticker: RSP,  name: Invesco S&P 500 EW,  sector: ETF / S&P Equal Weight,
+     px_seed: 195.28, range_52w: {low: 150.35, high: 205.24},
+     tweet_cashtag_only: true,
+     search_aliases: {email: ["RSP "], tweet: ["$RSP", "Equal Weight"]}}
+
+  - {ticker: IWM,  name: iShares Russell 2000, sector: ETF / Small Cap,
+     px_seed: 249.96, range_52w: {low: 171.73, high: 271.60},
+     tweet_cashtag_only: true,
+     search_aliases: {email: [IWM, "Russell 2000"], tweet: ["$IWM", "Russell 2000"]}}
+
+  - {ticker: XLE,  name: Energy Select SPDR,  sector: ETF / Energy,
+     px_seed: 57.97, range_52w: {low: 37.25, high: 58.22},
+     tweet_cashtag_only: true,
+     search_aliases: {email: [XLE, "Energy ETF"], tweet: ["$XLE", "Energy ETF"]}}
+
+  - {ticker: EWY,  name: iShares MSCI S. Korea, sector: ETF / South Korea,
+     px_seed: 132.56, range_52w: {low: 48.49, high: 154.22},
+     search_aliases: {email: [EWY, "Korea ETF"], tweet: [$EWY, "Korea ETF"]}}
+
+  - {ticker: XLP,  name: Consumer Staples SPDR, sector: ETF / Staples,
+     px_seed: 85.05, range_52w: {low: 75.16, high: 90.14},
+     tweet_cashtag_only: true,
+     search_aliases: {email: [XLP, "Staples ETF"], tweet: ["$XLP", "Staples ETF"]}}
+
+  - {ticker: SOXX, name: iShares Semiconductor, sector: ETF / Semis,
+     px_seed: 340.35, range_52w: {low: 148.31, high: 368.82},
+     search_aliases: {email: [SOXX, "Semi ETF"], tweet: [$SOXX, "Semis ETF"]}}
+
+  - {ticker: GDX,  name: VanEck Gold Miners,  sector: ETF / Gold,
+     px_seed: 94.15, range_52w: {low: 40.26, high: 117.18},
+     search_aliases: {email: [GDX], tweet: [$GDX, "Gold Miners"]}}
+
+  - {ticker: KBWB, name: Invesco KBW Bank,    sector: ETF / Banks,
+     px_seed: 76.53, range_52w: {low: 51.13, high: 91.44},
+     search_aliases: {email: [KBWB], tweet: [$KBWB]}}
+
+  - {ticker: XLF,  name: Financial Select SPDR, sector: ETF / Financials,
+     px_seed: 49.29, range_52w: {low: 42.21, high: 56.52},
+     search_aliases: {email: [XLF], tweet: [$XLF]}}
+
+  - {ticker: CHIP11.SA, bbg_ticker: CHIP11 BZ Equity, name: Chipmakers ETF (BR), sector: ETF / Semis (BRL),
+     px_seed: 25.75, range_52w: {low: 12.50, high: 28.41},
+     search_aliases: {email: [CHIP11, CHIP11.SA], tweet: [CHIP11]}}
+
+  # ─── Pseudo-tickers (private cos — alias-only) ───────────────────────────
+  - {ticker: ANTHROPIC, name: Anthropic, sector: AI Foundation Model, pseudo: true,
+     search_aliases: {email: [Anthropic, "Claude AI", "Dario Amodei", "@AnthropicAI"],
+                      tweet:  [Anthropic, "Claude AI", "@AnthropicAI", "Dario Amodei"]}}
+
+  - {ticker: OPENAI, name: OpenAI, sector: AI Foundation Model, pseudo: true,
+     search_aliases: {email: [OpenAI, ChatGPT, "Sam Altman", "@OpenAI", "@sama", "@gdb",
+                              "Greg Brockman", GPT-4, GPT-5, GPT-6, "Mira Murati", DALL-E],
+                      tweet:  [OpenAI, ChatGPT, "@OpenAI", "@sama", "@gdb",
+                              "Sam Altman", "Greg Brockman", GPT-4, GPT-5, GPT-6,
+                              "Mira Murati", DALL-E, "@OpenAINewsroom"]}}

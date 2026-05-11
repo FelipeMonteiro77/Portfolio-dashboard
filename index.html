@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Capstone Portfolio Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+<link rel="stylesheet" href="css/extensions.css">
 <style>
 :root {
   --bg: #0d1117; --surface: #161b22; --surface2: #1c2128;
@@ -244,6 +245,36 @@ select[multiple] option:checked { background: rgba(88,166,255,.2); color: var(--
   <div class="tab" onclick="showTab('risk')">⚡ Risk & Analytics</div>
   <div class="tab" onclick="showTab('valuation')">🏷️ Valuation</div>
   <div class="tab" onclick="showTab('screen')">📰 Screen</div>
+  <div class="tab" id="v2-news-tab" onclick="showTab('news')" style="display:none">🗞️ Notícias</div>
+</div>
+
+<!-- ═══════════════════ NOTÍCIAS (v2 — backend-only) ═══════════════════ -->
+<div class="panel" id="tab-news">
+  <div class="v2-news-toolbar">
+    <div class="v2-news-filters" id="v2-news-filters">
+      <button class="pill active" data-news-filter="all">Todos</button>
+      <select class="v2-news-sector" id="v2-news-sector">
+        <option value="">Setor: todos</option>
+      </select>
+      <select class="v2-news-ticker" id="v2-news-ticker">
+        <option value="">Ticker: todos</option>
+      </select>
+      <span class="v2-news-meta" id="v2-news-meta"></span>
+    </div>
+    <div class="v2-news-actions">
+      <button class="v2-news-refresh" id="v2-news-refresh" title="Refresh emails cache (slow)">↻ Refresh</button>
+    </div>
+  </div>
+  <div class="v2-news-cols">
+    <div class="v2-news-col">
+      <div class="v2-news-col-head">Tweets <span id="v2-news-tweet-count" class="v2-news-count"></span></div>
+      <div class="v2-news-col-body" id="v2-news-tweets"><div class="v2-drawer-empty">Loading…</div></div>
+    </div>
+    <div class="v2-news-col">
+      <div class="v2-news-col-head">Emails <span id="v2-news-email-count" class="v2-news-count"></span></div>
+      <div class="v2-news-col-body" id="v2-news-emails"><div class="v2-drawer-empty">Loading…</div></div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════════ OVERVIEW ═══════════════════ -->
@@ -2236,5 +2267,15 @@ populateTickers();
 renderTicker();
 computePriceAnalytics();
 </script>
+
+<!-- ═══════════════════ v2 EXTENSIONS ═══════════════════
+     Layered on top of the original dashboard. Each module probes
+     /api/health and gracefully no-ops when the local backend is absent
+     (e.g. on GH Pages). The original dashboard works without them.
+================================================================ -->
+<script src="js/dashboard-extensions.js" defer></script>
+<script src="js/ticker-drawer.js" defer></script>
+<script src="js/ticker-config.js" defer></script>
+<script src="js/news-tab.js" defer></script>
 </body>
 </html>
