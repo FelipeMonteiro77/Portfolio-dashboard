@@ -94,8 +94,17 @@ async def _refresh_cache(days: int = DEFAULT_DAYS) -> dict:
         )
         stdout, stderr = await proc.communicate()
         if proc.returncode != 0:
+            err_text = stderr.decode("utf-8", "replace")[:1000].strip()
+            # The most common failure: Outlook desktop is closed → COM call
+            # raises "Erro ao conectar ao Outlook" / "Outlook is not running".
+            if "outlook" in err_text.lower() or "com" in err_text.lower():
+                raise RuntimeError(
+                    "Outlook desktop is not running. Open the Outlook app on your "
+                    "Windows desktop, wait for the inbox to load, then click "
+                    "Refresh again."
+                )
             raise RuntimeError(
-                f"outlook.py failed (code {proc.returncode}): {stderr.decode('utf-8', 'replace')[:500]}"
+                f"outlook.py failed (code {proc.returncode}): {err_text}"
             )
         # Truncate bodies to keep the cache compact (4 KB is plenty for ticker
         # matching; research notes rarely have important content past the first

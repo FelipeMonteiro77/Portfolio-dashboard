@@ -35,6 +35,52 @@
   window.V2.state = state;
   window.V2.openDrawer = (t) => console.warn('drawer module not loaded yet', t);
 
+  // ── Yahoo CORS shim ───────────────────────────────────────────────────
+  // The original index.html fetches query1.finance.yahoo.com directly from the
+  // browser. That works on file:// or github.io, but localhost gets CORS-blocked.
+  // We patch window.fetch so any Yahoo chart URL is transparently rewritten to
+  // our /api/chart proxy, which makes the same call server-side.
+  (function installYahooShim() {
+    const realFetch = window.fetch.bind(window);
+    window.fetch = function (url, opts) {
+      try {
+        const u = (typeof url === 'string') ? url : (url && url.url) || '';
+        if (u.includes('query1.finance.yahoo.com/v8/finance/chart/')) {
+          // Extract symbol + query params and rewrite.
+          const m = u.match(/\/chart\/([^?]+)\?(.*)$/);
+          if (m) {
+            const sym = decodeURIComponent(m[1]);
+            const qs = new URLSearchParams(m[2]);
+            const range_ = qs.get('range') || '1mo';
+            const interval = qs.get('interval') || '1d';
+            // Map to /api/chart, then wrap the response in the same Yahoo shape
+            // the original code expects.
+            return realFetch(`/api/chart?ticker=${encodeURIComponent(sym)}&range=${range_}&interval=${interval}`)
+              .then(r => r.ok ? r.json() : Promise.reject(new Error('chart ' + r.status)))
+              .then(d => ({
+                ok: true,
+                json: async () => ({
+                  chart: {
+                    result: [{
+                      meta: {
+                        regularMarketPrice: d.close?.[d.close.length - 1] ?? null,
+                        chartPreviousClose: d.close?.[d.close.length - 2] ?? null,
+                        currency: d.currency,
+                      },
+                      timestamp: d.timestamps,
+                      indicators: { quote: [{ close: d.close, open: d.open, high: d.high, low: d.low, volume: d.volume }] },
+                    }],
+                  },
+                }),
+              }))
+              .catch(err => ({ ok: false, status: 502, json: async () => ({ error: String(err) }) }));
+          }
+        }
+      } catch (e) { /* fall through to real fetch */ }
+      return realFetch(url, opts);
+    };
+  })();
+
   // ── Boot ──────────────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     setTimeout(boot, 50);  // let the original dashboard finish its initial render

@@ -85,9 +85,16 @@
       const btn = document.getElementById('v2-inbox-refresh');
       btn.disabled = true; btn.textContent = '⏳ Refreshing…';
       try {
-        // Kick an Outlook cache refresh first (slow), then reload the feed.
-        await fetch(`/api/emails/refresh?days=${Math.max(1, Math.ceil(STATE.hours/24))}`, { method: 'POST' });
-      } catch (e) { /* ignore */ }
+        const r = await fetch(`/api/emails/refresh?days=${Math.max(1, Math.ceil(STATE.hours/24))}`, { method: 'POST' });
+        if (!r.ok) {
+          // Surface the backend error message inline (most common: Outlook closed).
+          let msg = `HTTP ${r.status}`;
+          try { const d = await r.json(); msg = d.detail || msg; } catch (_) {}
+          alert(`Email refresh failed:\n\n${msg}`);
+        }
+      } catch (e) {
+        alert(`Email refresh failed: ${e.message}`);
+      }
       await load();
       btn.disabled = false; btn.textContent = '↻ Refresh';
     });
