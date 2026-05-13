@@ -2391,7 +2391,11 @@ function renderMentionsPanel(panel, data) {
   // ── Email ──
   html += `<div class="mp-section-head">📧 Email <span class="mp-count">${em.total_emails || 0} emails across ${em.by_sender?.length || 0} senders</span></div>`;
   if (!em.available) {
-    html += `<div class="mp-empty">Email search unavailable: ${em.reason || 'unknown error'}</div>`;
+    if (em.refreshing) {
+      html += `<div class="mp-empty"><span class="spinner"></span> Email cache is loading from Outlook — typically 30-60s. Retry the button in a moment.</div>`;
+    } else {
+      html += `<div class="mp-empty">Email search unavailable: ${em.reason || 'unknown error'}<br><br><button onclick="fetch('/api/refresh-emails');this.textContent='Refresh triggered — retry button in 30-60s';this.disabled=true" style="margin-top:8px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);color:var(--blue);border-radius:4px;cursor:pointer;font-size:.75rem">Trigger refresh now</button></div>`;
+    }
   } else if (!em.by_sender?.length) {
     html += `<div class="mp-empty">No emails with $${data.ticker} in subject in the last ${data.days} days.<br><span style="font-size:.72rem;color:var(--text3)">Cache age: ${Math.round((em.cache_age_seconds||0)/60)} min</span></div>`;
   } else {
