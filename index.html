@@ -215,6 +215,53 @@ select[multiple] option:checked { background: rgba(88,166,255,.2); color: var(--
 .rsi-warm { background: rgba(227,179,65,.15); color: var(--orange); }
 .rsi-overbought { background: rgba(248,81,73,.15); color: var(--red); }
 .rsi-loading { background: var(--surface2); color: var(--text3); }
+
+/* ── Mentions side panel ─────────────────────────────────────────── */
+.spinner { display:inline-block; width:18px; height:18px; border:2px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:spin .8s linear infinite; margin-right:8px; vertical-align:middle; }
+#mentions-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 998;
+  opacity: 0; pointer-events: none; transition: opacity .18s ease;
+}
+#mentions-overlay.open { opacity: 1; pointer-events: auto; }
+#mentions-panel {
+  position: fixed; top: 0; right: 0; height: 100vh; width: min(560px, 95vw);
+  background: var(--bg); border-left: 1px solid var(--border);
+  box-shadow: -8px 0 24px rgba(0,0,0,.4);
+  z-index: 999; display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform .22s ease;
+}
+#mentions-panel.open { transform: translateX(0); }
+.mp-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.mp-title { font-size: .95rem; }
+.mp-close {
+  background: transparent; border: 1px solid var(--border); color: var(--text2);
+  width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: .9rem;
+}
+.mp-close:hover { background: var(--surface2); color: var(--text); }
+.mp-body { flex: 1; overflow-y: auto; padding: 8px 0; }
+.mp-section-head {
+  padding: 14px 18px 6px; font-size: .82rem; font-weight: 700; color: var(--text);
+  border-top: 1px solid var(--border); margin-top: 4px;
+  display: flex; align-items: baseline; gap: 10px;
+}
+.mp-section-head:first-child { border-top: none; margin-top: 0; }
+.mp-count { font-size: .68rem; font-weight: 500; color: var(--text3); letter-spacing: .03em; }
+.mp-empty { padding: 14px 18px; color: var(--text3); font-size: .82rem; }
+.mp-group { padding: 8px 18px; border-bottom: 1px solid var(--border); }
+.mp-group:last-child { border-bottom: none; }
+.mp-group-head {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 6px; font-size: .78rem;
+}
+.mp-handle { color: var(--blue); font-weight: 700; }
+.mp-author { color: var(--text2); font-size: .72rem; }
+.mp-meta { color: var(--text3); font-size: .68rem; margin-left: auto; letter-spacing: .03em; }
+.mp-item { padding: 6px 10px; margin: 4px 0; background: var(--surface); border-radius: 4px; border: 1px solid var(--border); }
+.mp-item-text { font-size: .78rem; line-height: 1.4; color: var(--text); white-space: pre-wrap; word-wrap: break-word; }
+.mp-item-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: .68rem; color: var(--text3); }
 </style>
 </head>
 <body>
@@ -2235,22 +2282,138 @@ function renderNewsItems(el, items, partial) {
   }).join('') + (partial ? '<div class="news-loading" style="padding:12px"><span class="spinner"></span> Loading more...</div>' : '');
 }
 
-// ── MENTIONS BUTTON: open Claude with a pre-filled prompt ─────────────
-// Builds a claude.ai/new URL containing instructions to query the local
-// Twitter SQLite corpus and Outlook (via MCP) for mentions of the ticker,
-// grouped by profile (Twitter handle / email sender).
+// ── MENTIONS BUTTON ───────────────────────────────────────────────────
+// When served from localhost (portfolio_serve.py running), fetch real
+// Twitter+Email mentions and render in a side panel. When loaded from
+// GitHub Pages, fall back to opening Claude with a pre-filled prompt.
+const MENTIONS_LOCAL = ['localhost','127.0.0.1'].includes(window.location.hostname);
+
 function openMentions(ticker, name) {
+  if (MENTIONS_LOCAL) {
+    openMentionsPanel(ticker, name);
+  } else {
+    openMentionsClaudeFallback(ticker, name);
+  }
+}
+
+function openMentionsClaudeFallback(ticker, name) {
   const prompt = `Search our local data sources for mentions of $${ticker} (${name}) in the last 7 days.\n\n` +
-`1. TWITTER CORPUS — query the local SQLite at C:/Users/felipe.monteiro/.claude/data/twitter-briefing/tweets.sqlite via FTS5. Search for "${ticker}" and "${name}". GROUP BY handle/author. For each handle, show: handle, date, tweet text (truncated), engagement (likes/RT). Sort handles by relevance (number of mentions, then engagement).\n\n` +
-`2. OUTLOOK EMAIL — use the outlook_email_search MCP tool. Search subject + body for "${ticker}" and "${name}" in the last 7 days. GROUP BY sender (sell-side analyst / broker). For each sender, show: sender name, date, subject, 1-line summary.\n\n` +
-`OUTPUT FORMAT — two sections:\n` +
-`### Twitter mentions ($${ticker})\n` +
-`(grouped by handle, sorted by relevance)\n\n` +
-`### Email mentions ($${ticker})\n` +
-`(grouped by sender, sorted by recency)\n\n` +
-`Keep it concise. Attribution on every datapoint. English only.`;
-  const url = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
-  window.open(url, '_blank', 'noopener');
+`1. TWITTER CORPUS — query the local SQLite via FTS5 for "${ticker}" and "${name}". GROUP BY handle. Show date, text, engagement.\n\n` +
+`2. OUTLOOK EMAIL — use the outlook_email_search MCP tool, last 7 days, "${ticker}" or "${name}" in subject/body. GROUP BY sender.\n\n` +
+`Output: two sections, grouped by profile. Concise. English only.`;
+  window.open('https://claude.ai/new?q=' + encodeURIComponent(prompt), '_blank', 'noopener');
+}
+
+function openMentionsPanel(ticker, name) {
+  let panel = document.getElementById('mentions-panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'mentions-panel';
+    panel.innerHTML = `
+      <div class="mp-head">
+        <div class="mp-title"></div>
+        <button class="mp-close" onclick="closeMentions()">✕</button>
+      </div>
+      <div class="mp-body"></div>`;
+    document.body.appendChild(panel);
+    const overlay = document.createElement('div');
+    overlay.id = 'mentions-overlay';
+    overlay.onclick = closeMentions;
+    document.body.appendChild(overlay);
+  }
+  panel.querySelector('.mp-title').innerHTML =
+    `<span style="color:var(--blue);font-weight:700">$${ticker}</span> <span style="color:var(--text2);font-weight:500">${name}</span> · <span style="color:var(--text3);font-size:.75rem">mentions, last 7d</span>`;
+  panel.querySelector('.mp-body').innerHTML =
+    `<div style="padding:20px;text-align:center;color:var(--text3)"><span class="spinner"></span> Loading mentions…</div>`;
+  panel.classList.add('open');
+  document.getElementById('mentions-overlay').classList.add('open');
+
+  fetch(`/api/mentions?ticker=${encodeURIComponent(ticker)}&name=${encodeURIComponent(name)}&days=7`)
+    .then(r => r.json())
+    .then(data => renderMentionsPanel(panel, data))
+    .catch(err => {
+      panel.querySelector('.mp-body').innerHTML =
+        `<div style="padding:20px;color:var(--red)">Error: ${err.message}<br><br>Is the local server running?<br><code>py -3.11 C:/Users/felipe.monteiro/scripts/portfolio_serve.py</code></div>`;
+    });
+}
+
+function closeMentions() {
+  const p = document.getElementById('mentions-panel');
+  const o = document.getElementById('mentions-overlay');
+  if (p) p.classList.remove('open');
+  if (o) o.classList.remove('open');
+}
+
+function renderMentionsPanel(panel, data) {
+  const tw = data.twitter || {};
+  const em = data.email || {};
+  const fmt = iso => {
+    if (!iso) return '';
+    const d = new Date(iso.replace(' ', 'T'));
+    if (isNaN(d)) return iso;
+    const days = Math.floor((Date.now() - d.getTime()) / 86400000);
+    if (days === 0) return 'today';
+    if (days === 1) return '1d ago';
+    if (days < 7) return days + 'd ago';
+    return d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  };
+
+  let html = '';
+
+  // ── Twitter ──
+  html += `<div class="mp-section-head">🐦 Twitter <span class="mp-count">${tw.total_tweets || 0} tweets across ${tw.by_handle?.length || 0} handles</span></div>`;
+  if (!tw.available) {
+    html += `<div class="mp-empty">Twitter search unavailable: ${tw.reason || 'unknown error'}</div>`;
+  } else if (!tw.by_handle?.length) {
+    html += `<div class="mp-empty">No tweets matching $${data.ticker} in the last ${data.days} days.</div>`;
+  } else {
+    for (const g of tw.by_handle) {
+      html += `<div class="mp-group">
+        <div class="mp-group-head">
+          <span class="mp-handle">@${g.handle}</span>
+          <span class="mp-author">${g.author_name || ''}</span>
+          <span class="mp-meta">${g.tweets.length} tweet${g.tweets.length===1?'':'s'} · ${g.total_engagement} 👍/RT</span>
+        </div>`;
+      for (const t of g.tweets) {
+        html += `<div class="mp-item">
+          <div class="mp-item-text">${(t.text || '').replace(/</g,'&lt;')}</div>
+          <div class="mp-item-meta">
+            <span>${fmt(t.created_at)}</span>
+            <span>· ${t.likes || 0} ♥ · ${t.retweets || 0} ↻</span>
+            ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" style="margin-left:auto;color:var(--blue)">open ↗</a>` : ''}
+          </div>
+        </div>`;
+      }
+      html += `</div>`;
+    }
+  }
+
+  // ── Email ──
+  html += `<div class="mp-section-head">📧 Email <span class="mp-count">${em.total_emails || 0} emails across ${em.by_sender?.length || 0} senders</span></div>`;
+  if (!em.available) {
+    html += `<div class="mp-empty">Email search unavailable: ${em.reason || 'unknown error'}</div>`;
+  } else if (!em.by_sender?.length) {
+    html += `<div class="mp-empty">No emails with $${data.ticker} in subject in the last ${data.days} days.<br><span style="font-size:.72rem;color:var(--text3)">Cache age: ${Math.round((em.cache_age_seconds||0)/60)} min</span></div>`;
+  } else {
+    for (const g of em.by_sender) {
+      html += `<div class="mp-group">
+        <div class="mp-group-head">
+          <span class="mp-handle">${g.sender}</span>
+          ${g.sender_email ? `<span class="mp-author">${g.sender_email}</span>` : ''}
+          <span class="mp-meta">${g.emails.length} email${g.emails.length===1?'':'s'}</span>
+        </div>`;
+      for (const e of g.emails) {
+        html += `<div class="mp-item">
+          <div class="mp-item-text" style="font-weight:500">${(e.subject || '').replace(/</g,'&lt;')}</div>
+          <div class="mp-item-meta"><span>${fmt(e.date)}</span></div>
+        </div>`;
+      }
+      html += `</div>`;
+    }
+    html += `<div style="padding:6px 12px;font-size:.7rem;color:var(--text3)">Cache age: ${Math.round((em.cache_age_seconds||0)/60)} min · subject-only match</div>`;
+  }
+
+  panel.querySelector('.mp-body').innerHTML = html;
 }
 
 function getTimeAgo(date) {
